@@ -45,11 +45,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -62,9 +60,7 @@ import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.AttachFile
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckBox
-import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
@@ -99,14 +95,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -128,7 +121,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.Key
@@ -194,13 +186,8 @@ import com.norfold.app.domain.EmbedBlock
 import com.norfold.app.domain.EmbedMetadata
 import com.norfold.app.domain.EmojiInline
 import com.norfold.app.domain.FileBlock
-import com.norfold.app.domain.DocOutline
-import com.norfold.app.domain.DocOverlapMode
 import com.norfold.app.domain.findById
-import com.norfold.app.domain.FreeformPlacement
 import com.norfold.app.domain.HeadingBlock
-import com.norfold.app.ui.dnd.dragLift
-import com.norfold.app.ui.dnd.dropSlotOutline
 import com.norfold.app.domain.ImageBlock
 import com.norfold.app.domain.ImageLayout
 import com.norfold.app.domain.InlineNode
@@ -242,7 +229,6 @@ import java.io.File
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Composable
@@ -271,26 +257,8 @@ fun BlockNoteEditorScreen(
     var activeSelection by remember(note.id) { mutableStateOf<EditorSelection?>(null) }
     var linkEditorRequest by remember(note.id) { mutableStateOf<LinkEditorRequest?>(null) }
     val listState = rememberLazyListState()
-    val overlapScrollState = rememberScrollState()
     val outlineScope = rememberCoroutineScope()
     var showOutline by remember { mutableStateOf(false) }
-    // Sidebar ToC taps: resolve the heading to its top-level ancestor, then scroll the Reflow list
-    // (or pan the free-overlap canvas to the block's stored y) and consume the one-shot request.
-    val scrollRequest by viewModel.scrollToBlockRequest.collectAsState()
-    val screenDensity = LocalDensity.current
-    LaunchedEffect(scrollRequest) {
-        val request = scrollRequest ?: return@LaunchedEffect
-        val entry = DocOutline.extract(renderedDocument).firstOrNull { it.blockId == request.blockId }
-        val topId = entry?.topLevelId ?: request.blockId
-        if (note.overlapMode == DocOverlapMode.Overlap) {
-            val y = (note.freeformLayout[topId]?.y ?: 0f) - 12f
-            overlapScrollState.animateScrollTo(with(screenDensity) { y.coerceAtLeast(0f).dp.roundToPx() })
-        } else {
-            val index = renderedDocument.blocks.indexOfFirst { it.id == topId }
-            if (index >= 0) listState.animateScrollToItem(index)
-        }
-        viewModel.consumeScrollToBlock()
-    }
     val listScrolling by remember { derivedStateOf { listState.isScrollInProgress } }
     val rangeBounds = remember(renderedDocument, rangeAnchorId, rangeExtentId) {
         val anchorIndex = renderedDocument.blocks.indexOfFirst { it.id == rangeAnchorId }
@@ -303,12 +271,6 @@ fun BlockNoteEditorScreen(
     var draggingId by remember(note.id) { mutableStateOf<String?>(null) }
     var dragHoverId by remember(note.id) { mutableStateOf<String?>(null) }
     var dragHoverEdge by remember(note.id) { mutableStateOf<Edge?>(null) }
-    // Floating-clone state: window pointer, grab offset inside the block, and the block's bounds at
-    // lift-off, so the clone tracks the finger at the same relative spot it was grabbed.
-    var dragPointer by remember(note.id) { mutableStateOf<Offset?>(null) }
-    var dragGrabOffset by remember(note.id) { mutableStateOf(Offset.Zero) }
-    var dragStartBounds by remember(note.id) { mutableStateOf<Rect?>(null) }
-    var editorRootOrigin by remember(note.id) { mutableStateOf(Offset.Zero) }
 
     fun changed(cursor: BlockCursor? = null) {
         renderedDocument = session.document
@@ -326,14 +288,7 @@ fun BlockNoteEditorScreen(
             .filter { it.key != dragged && it.value.contains(pointer) && !blockIsDescendantOf(it.key, dragged) }
             .minByOrNull { it.value.width * it.value.height }
         if (hit == null) {
-            // Keep the current target while the pointer rides the dragged block's own placeholder
-            // (the live reorder preview parks that slot right under the finger); only clear the
-            // target when the pointer genuinely leaves every block.
-            val ownBounds = dragBounds[dragged]
-            if (ownBounds == null || !ownBounds.contains(pointer)) {
-                dragHoverId = null; dragHoverEdge = null
-            }
-            return
+            dragHoverId = null; dragHoverEdge = null; return
         }
         val r = hit.value
         val fx = if (r.width <= 0f) .5f else ((pointer.x - r.left) / r.width).coerceIn(0f, 1f)
@@ -348,22 +303,11 @@ fun BlockNoteEditorScreen(
         }
     }
 
-    // True while a drag previews a plain top-level reorder (both blocks top-level, Top/Bottom edge):
-    // the rendered list is permuted live so neighbors slide via animateItem(), instead of edge lines.
-    fun previewReorderActive(): Boolean {
-        val dragged = draggingId ?: return false
-        val hover = dragHoverId ?: return false
-        if (dragHoverEdge != Edge.Top && dragHoverEdge != Edge.Bottom) return false
-        val blocks = renderedDocument.blocks
-        return blocks.any { it.id == dragged } && blocks.any { it.id == hover }
-    }
-
     fun finishDrag() {
         val dragged = draggingId
         val hover = dragHoverId
         val edge = dragHoverEdge
         draggingId = null; dragHoverId = null; dragHoverEdge = null
-        dragPointer = null; dragStartBounds = null
         if (dragged == null || hover == null || dragged == hover) return
         val target: DropTarget? = when (edge) {
             Edge.Left, Edge.Right -> DropTarget.Split(hover, edge)
@@ -381,7 +325,6 @@ fun BlockNoteEditorScreen(
 
     fun cancelDrag() {
         draggingId = null; dragHoverId = null; dragHoverEdge = null
-        dragPointer = null; dragStartBounds = null
     }
 
     fun replaceActiveSelection(factory: (String) -> InlineNode) {
@@ -466,7 +409,7 @@ fun BlockNoteEditorScreen(
     }
 
     CompositionLocalProvider(LocalEmojiShortcodes provides emojiShortcodes) {
-    Box(modifier.fillMaxSize().onGloballyPositioned { editorRootOrigin = it.positionInWindow() }) {
+    Box(modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
         BlockEditorHeader(
             title = title,
@@ -495,8 +438,6 @@ fun BlockNoteEditorScreen(
             onPin = { viewModel.togglePin(note) },
             onLock = { viewModel.toggleLock(note) },
             onOutline = { showOutline = true },
-            overlapMode = note.overlapMode,
-            onSetOverlapMode = { viewModel.setOverlapMode(note, it) },
         )
         if (rangeAnchorId != null) {
             DocumentRangeToolbar(
@@ -619,54 +560,15 @@ fun BlockNoteEditorScreen(
                     }
                 },
                 onReportBounds = { rect -> if (rect != null) dragBounds[block.id] = rect else dragBounds.remove(block.id) },
-                onDragBegin = {
-                    draggingId = block.id
-                    dragStartBounds = dragBounds[block.id]
-                },
-                onDragTo = { p ->
-                    if (dragPointer == null) dragGrabOffset = p - (dragStartBounds?.topLeft ?: p)
-                    dragPointer = p
-                    updateDragHover(p)
-                },
+                onDragBegin = { draggingId = block.id },
+                onDragTo = { p -> updateDragHover(p) },
                 onDragDrop = { finishDrag() },
                 onDragAbort = { cancelDrag() },
                 isBeingDragged = draggingId == block.id,
-                isDragHovered = dragHoverId == block.id && draggingId != null && !previewReorderActive(),
-                dragHoverEdge = if (dragHoverId == block.id && !previewReorderActive()) dragHoverEdge else null,
+                isDragHovered = dragHoverId == block.id && draggingId != null,
+                dragHoverEdge = if (dragHoverId == block.id) dragHoverEdge else null,
                 renderChild = { child -> BlockNode(child, index = -1, nested = true, rowModifier = Modifier) },
             )
-        }
-        if (note.overlapMode == DocOverlapMode.Overlap) {
-            // Free-overlap mode: a completely freeform canvas (absolute x/y, explicit size, z-layers)
-            // replaces the stacked list; the Reflow LazyColumn path below is untouched.
-            FreeformDocCanvas(
-                blocks = renderedDocument.blocks,
-                layout = note.freeformLayout,
-                editMode = editMode,
-                onSeedLayout = { viewModel.updateFreeformLayout(note, it) },
-                onCommitPlacement = { id, placement -> viewModel.updateBlockPlacement(note, id, placement) },
-                onBringToFront = { viewModel.bringBlockToFront(note, it) },
-                onBringForward = { viewModel.bringBlockForward(note, it) },
-                onSendBackward = { viewModel.sendBlockBackward(note, it) },
-                onSendToBack = { viewModel.sendBlockToBack(note, it) },
-                onBackgroundTap = { if (editMode) { editMode = false; activeSelection = null } },
-                onBackgroundDoubleTap = { if (!editMode) editMode = true },
-                scrollState = overlapScrollState,
-                modifier = Modifier.widthIn(max = 960.dp).fillMaxSize().align(Alignment.CenterHorizontally).imePadding(),
-            ) { block -> BlockNode(block, index = -1, nested = true, rowModifier = Modifier) }
-        } else {
-        // Live reorder preview: while dragging over a top-level Top/Bottom edge, render the list with
-        // the dragged block moved to the would-be drop slot; animateItem() slides the neighbors. The
-        // real document is only mutated on drop (session.move in finishDrag), so aborting snaps back.
-        val displayBlocks = if (!previewReorderActive()) renderedDocument.blocks else {
-            val blocks = renderedDocument.blocks
-            val draggedBlock = blocks.first { it.id == draggingId }
-            val without = blocks.filter { it.id != draggingId }
-            val anchor = without.indexOfFirst { it.id == dragHoverId }
-            if (anchor < 0) blocks else {
-                val insertAt = (anchor + if (dragHoverEdge == Edge.Bottom) 1 else 0).coerceIn(0, without.size)
-                without.toMutableList().apply { add(insertAt, draggedBlock) }
-            }
         }
         LazyColumn(
             Modifier.widthIn(max = 960.dp).fillMaxSize().align(Alignment.CenterHorizontally).imePadding().pointerInput(editMode) {
@@ -680,7 +582,7 @@ fun BlockNoteEditorScreen(
             state = listState,
         ) {
             itemsIndexed(
-                displayBlocks,
+                renderedDocument.blocks,
                 key = { _, block -> block.id },
                 contentType = { _, block -> block::class },
             ) { index, block ->
@@ -704,27 +606,6 @@ fun BlockNoteEditorScreen(
                     }
                 }
             }
-        }
-        }
-    }
-    // Floating drag clone: the grabbed block "lifts off" and follows the finger while its source row
-    // collapses into a dashed placeholder slot in the list below.
-    val cloneBlock = draggingId?.let { id -> renderedDocument.findById(id) }
-    val clonePointer = dragPointer
-    if (cloneBlock != null && clonePointer != null) {
-        val density = LocalDensity.current
-        val cloneWidth = with(density) { (dragStartBounds?.width ?: 0f).toDp() }
-        val position = clonePointer - dragGrabOffset - editorRootOrigin
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier
-                .then(if (cloneWidth > 0.dp) Modifier.width(cloneWidth) else Modifier.fillMaxWidth(0.8f))
-                .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
-                .zIndex(20f)
-                .dragLift(lifted = true, cornerRadius = 10.dp),
-        ) {
-            Box(Modifier.heightIn(max = 240.dp).padding(10.dp)) { BlockCloneContent(cloneBlock) }
         }
     }
     if (editMode && activeSelection != null) {
@@ -854,7 +735,9 @@ fun BlockNoteEditorScreen(
         )
     }
     if (showOutline) {
-        val headings = DocOutline.extract(renderedDocument)
+        val headings = renderedDocument.blocks.mapIndexedNotNull { index, block ->
+            (block as? HeadingBlock)?.let { index to it }
+        }
         ModalBottomSheet(onDismissRequest = { showOutline = false }) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
                 Text(
@@ -870,10 +753,12 @@ fun BlockNoteEditorScreen(
                         modifier = Modifier.padding(vertical = 12.dp),
                     )
                 } else {
-                    headings.forEach { heading ->
-                        val depth = heading.level
+                    headings.forEach { (index, heading) ->
+                        val depth = heading.level.coerceIn(1, 6)
+                        val label = heading.content.joinToString("") { it.plainText() }
+                            .ifBlank { "Untitled heading" }
                         Text(
-                            text = heading.label,
+                            text = label,
                             fontSize = (17 - (depth.coerceAtMost(4) - 1)).sp,
                             fontWeight = if (depth <= 1) FontWeight.SemiBold else FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -882,14 +767,7 @@ fun BlockNoteEditorScreen(
                                 .fillMaxWidth()
                                 .clickable {
                                     showOutline = false
-                                    outlineScope.launch {
-                                        if (note.overlapMode == DocOverlapMode.Overlap) {
-                                            val y = (note.freeformLayout[heading.topLevelId]?.y ?: 0f) - 12f
-                                            overlapScrollState.animateScrollTo(with(screenDensity) { y.coerceAtLeast(0f).dp.roundToPx() })
-                                        } else {
-                                            listState.animateScrollToItem(heading.topLevelIndex)
-                                        }
-                                    }
+                                    outlineScope.launch { listState.animateScrollToItem(index) }
                                 }
                                 .padding(start = ((depth - 1) * 14).dp, top = 10.dp, bottom = 10.dp),
                         )
@@ -1274,255 +1152,6 @@ private fun DocumentBlock.withRenderMode(mode: BlockRenderMode): DocumentBlock =
     else -> this
 }
 
-/** Snap distance (dp) for the free-overlap alignment guides. */
-private const val FreeformSnapThresholdDp = 6f
-
-/**
- * Free-overlap canvas ([DocOverlapMode.Overlap]): top-level blocks float at absolute dp positions
- * with explicit size and z-order instead of the stacked Reflow list, so anything can be dropped on
- * top of anything (a callout positioned over an image *is* the overlay). Move/resize gestures update
- * a transient local map (same pattern as the workspace canvas) and persist on gesture end; z always
- * comes from the stored layout so the layer menu applies instantly. While a block moves, other
- * blocks' edges/centers within [FreeformSnapThresholdDp] snap the drag and draw dashed guides.
- */
-@Composable
-private fun FreeformDocCanvas(
-    blocks: List<DocumentBlock>,
-    layout: Map<String, FreeformPlacement>,
-    editMode: Boolean,
-    onSeedLayout: (Map<String, FreeformPlacement>) -> Unit,
-    onCommitPlacement: (String, FreeformPlacement) -> Unit,
-    onBringToFront: (String) -> Unit,
-    onBringForward: (String) -> Unit,
-    onSendBackward: (String) -> Unit,
-    onSendToBack: (String) -> Unit,
-    onBackgroundTap: () -> Unit,
-    onBackgroundDoubleTap: () -> Unit,
-    scrollState: ScrollState,
-    modifier: Modifier = Modifier,
-    renderBlock: @Composable (DocumentBlock) -> Unit,
-) {
-    // Blocks without a stored placement (first entry into Overlap mode, or newly inserted) cascade
-    // down the page below the lowest existing block, each on its own fresh top layer.
-    val effectiveLayout = remember(blocks, layout) {
-        val merged = layout.toMutableMap()
-        var nextY = (layout.values.maxOfOrNull { it.y + it.height } ?: 0f) + 16f
-        var nextZ = (layout.values.maxOfOrNull { it.z } ?: -1) + 1
-        blocks.forEach { block ->
-            if (block.id !in merged) {
-                merged[block.id] = FreeformPlacement(x = 16f, y = nextY, width = 328f, height = 160f, z = nextZ++)
-                nextY += 176f
-            }
-        }
-        merged
-    }
-    LaunchedEffect(layout, blocks) {
-        if (blocks.any { it.id !in layout }) {
-            onSeedLayout(effectiveLayout.filterKeys { id -> blocks.any { it.id == id } })
-        }
-    }
-    // Gesture closures survive recomposition, so they must read layout/blocks through these.
-    val latestLayout = rememberUpdatedState(effectiveLayout)
-    val latestBlocks = rememberUpdatedState(blocks)
-    // In-flight move/resize overrides; an entry clears once the persisted layout catches up so the
-    // block never snaps back while the write round-trips through the repository.
-    val localPlacements = remember { mutableStateMapOf<String, FreeformPlacement>() }
-    LaunchedEffect(layout) {
-        localPlacements.keys.toList().forEach { id ->
-            val local = localPlacements[id] ?: return@forEach
-            val stored = layout[id] ?: return@forEach
-            if (stored.copy(z = 0) == local.copy(z = 0)) localPlacements.remove(id)
-        }
-    }
-    fun displayed(id: String, source: Map<String, FreeformPlacement> = effectiveLayout): FreeformPlacement {
-        val stored = source[id] ?: FreeformPlacement()
-        return (localPlacements[id] ?: stored).copy(z = stored.z)
-    }
-    var movingId by remember { mutableStateOf<String?>(null) }
-    val verticalGuides = remember { mutableStateListOf<Float>() }
-    val horizontalGuides = remember { mutableStateListOf<Float>() }
-    fun clearGuides() {
-        verticalGuides.clear()
-        horizontalGuides.clear()
-    }
-    // Nearest own-line → other-line match within threshold; returns (delta to apply, guide line).
-    fun snapDelta(own: List<Float>, targets: List<Float>): Pair<Float, Float>? {
-        var best: Pair<Float, Float>? = null
-        own.forEach { o ->
-            targets.forEach { t ->
-                val d = t - o
-                if (abs(d) <= FreeformSnapThresholdDp && (best == null || abs(d) < abs(best!!.first))) best = d to t
-            }
-        }
-        return best
-    }
-    val zOrder = effectiveLayout.entries.sortedWith(compareBy({ it.value.z }, { it.key })).map { it.key }
-    val contentHeight = ((blocks.maxOfOrNull { block -> displayed(block.id).let { it.y + it.height } } ?: 480f) + 320f).dp
-    val guideColor = MaterialTheme.colorScheme.primary
-    Box(
-        modifier
-            .verticalScroll(scrollState)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { onBackgroundTap() },
-                    onDoubleTap = { onBackgroundDoubleTap() },
-                )
-            },
-    ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(contentHeight)
-                .drawBehind {
-                    if (verticalGuides.isEmpty() && horizontalGuides.isEmpty()) return@drawBehind
-                    val dash = PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 6.dp.toPx()))
-                    verticalGuides.forEach { x ->
-                        drawLine(guideColor, Offset(x.dp.toPx(), 0f), Offset(x.dp.toPx(), size.height), strokeWidth = 1.5.dp.toPx(), pathEffect = dash)
-                    }
-                    horizontalGuides.forEach { y ->
-                        drawLine(guideColor, Offset(0f, y.dp.toPx()), Offset(size.width, y.dp.toPx()), strokeWidth = 1.5.dp.toPx(), pathEffect = dash)
-                    }
-                },
-        ) {
-            blocks.forEach { block ->
-                key(block.id) {
-                    val placement = displayed(block.id)
-                    val moving = movingId == block.id
-                    var layerMenu by remember { mutableStateOf(false) }
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(10.dp),
-                        tonalElevation = if (editMode) 1.dp else 0.dp,
-                        modifier = Modifier
-                            .offset { IntOffset(placement.x.dp.roundToPx(), placement.y.dp.roundToPx()) }
-                            .size(placement.width.dp, placement.height.dp)
-                            .zIndex(placement.z.toFloat() + if (moving) 1000f else 0f)
-                            .dragLift(lifted = moving, cornerRadius = 10.dp)
-                            .then(
-                                if (editMode) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
-                                else Modifier,
-                            ),
-                    ) {
-                        Box(Modifier.fillMaxSize()) {
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                            ) { renderBlock(block) }
-                            if (editMode) {
-                                Row(
-                                    Modifier.align(Alignment.TopEnd).padding(2.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Box {
-                                        Icon(
-                                            Icons.Outlined.Layers,
-                                            contentDescription = "Layer options",
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier
-                                                .size(26.dp)
-                                                .clip(CircleShape)
-                                                .clickable { layerMenu = true }
-                                                .padding(4.dp),
-                                        )
-                                        DropdownMenu(expanded = layerMenu, onDismissRequest = { layerMenu = false }) {
-                                            Text(
-                                                "Layer ${zOrder.indexOf(block.id) + 1} of ${zOrder.size}",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                            )
-                                            DropdownMenuItem(text = { Text("Bring to front") }, onClick = { layerMenu = false; onBringToFront(block.id) })
-                                            DropdownMenuItem(text = { Text("Bring forward") }, onClick = { layerMenu = false; onBringForward(block.id) })
-                                            DropdownMenuItem(text = { Text("Send backward") }, onClick = { layerMenu = false; onSendBackward(block.id) })
-                                            DropdownMenuItem(text = { Text("Send to back") }, onClick = { layerMenu = false; onSendToBack(block.id) })
-                                        }
-                                    }
-                                    Icon(
-                                        Icons.Outlined.DragIndicator,
-                                        contentDescription = "Move block",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier
-                                            .size(26.dp)
-                                            .clip(CircleShape)
-                                            .pointerInput(block.id) {
-                                                detectDragGestures(
-                                                    onDragStart = { movingId = block.id },
-                                                    onDragEnd = {
-                                                        movingId = null
-                                                        clearGuides()
-                                                        localPlacements[block.id]?.let { onCommitPlacement(block.id, it) }
-                                                    },
-                                                    onDragCancel = {
-                                                        movingId = null
-                                                        clearGuides()
-                                                        localPlacements.remove(block.id)
-                                                    },
-                                                ) { change, dragAmount ->
-                                                    change.consume()
-                                                    val stored = latestLayout.value[block.id] ?: FreeformPlacement()
-                                                    val current = localPlacements[block.id] ?: stored
-                                                    var nx = current.x + dragAmount.x.toDp().value
-                                                    var ny = (current.y + dragAmount.y.toDp().value).coerceAtLeast(0f)
-                                                    clearGuides()
-                                                    val others = latestBlocks.value
-                                                        .filter { it.id != block.id }
-                                                        .map { displayed(it.id, latestLayout.value) }
-                                                    snapDelta(
-                                                        listOf(nx, nx + current.width / 2f, nx + current.width),
-                                                        others.flatMap { listOf(it.x, it.x + it.width / 2f, it.x + it.width) },
-                                                    )?.let { (d, guide) ->
-                                                        nx += d
-                                                        verticalGuides.add(guide)
-                                                    }
-                                                    snapDelta(
-                                                        listOf(ny, ny + current.height / 2f, ny + current.height),
-                                                        others.flatMap { listOf(it.y, it.y + it.height / 2f, it.y + it.height) },
-                                                    )?.let { (d, guide) ->
-                                                        ny += d
-                                                        horizontalGuides.add(guide)
-                                                    }
-                                                    localPlacements[block.id] = current.copy(x = nx, y = ny)
-                                                }
-                                            }
-                                            .padding(4.dp),
-                                    )
-                                }
-                                // Corner resize handle.
-                                Box(
-                                    Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(3.dp)
-                                        .size(16.dp)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f), CircleShape)
-                                        .pointerInput(block.id) {
-                                            detectDragGestures(
-                                                onDragEnd = {
-                                                    localPlacements[block.id]?.let { onCommitPlacement(block.id, it) }
-                                                },
-                                                onDragCancel = { localPlacements.remove(block.id) },
-                                            ) { change, dragAmount ->
-                                                change.consume()
-                                                val stored = latestLayout.value[block.id] ?: FreeformPlacement()
-                                                val current = localPlacements[block.id] ?: stored
-                                                localPlacements[block.id] = current.copy(
-                                                    width = (current.width + dragAmount.x.toDp().value).coerceAtLeast(120f),
-                                                    height = (current.height + dragAmount.y.toDp().value).coerceAtLeast(64f),
-                                                )
-                                            }
-                                        },
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun BlockEditorHeader(
     title: String,
@@ -1543,8 +1172,6 @@ private fun BlockEditorHeader(
     onPin: () -> Unit,
     onLock: () -> Unit,
     onOutline: () -> Unit,
-    overlapMode: DocOverlapMode,
-    onSetOverlapMode: (DocOverlapMode) -> Unit,
 ) {
     var titleValue by remember { mutableStateOf(TextFieldValue(title)) }
     var titleFocused by remember { mutableStateOf(false) }
@@ -1574,19 +1201,6 @@ private fun BlockEditorHeader(
             } else {
                 Text(title, Modifier.weight(1f).padding(horizontal = 4.dp), fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 3)
             }
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = if (overlapMode == DocOverlapMode.Overlap) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            ) {
-                Text(
-                    if (overlapMode == DocOverlapMode.Overlap) "Overlap On" else "Reflow",
-                    Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                    fontSize = 10.sp,
-                    maxLines = 1,
-                    color = if (overlapMode == DocOverlapMode.Overlap) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
         Box(Modifier.fillMaxWidth().height(48.dp)) {
             Row(
@@ -1603,61 +1217,6 @@ private fun BlockEditorHeader(
                 IconButton(onClick = onPin) { Icon(Icons.Outlined.PushPin, "Pin", tint = if (pinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
                 IconButton(onClick = onLock) { Icon(if (locked) Icons.Outlined.Lock else Icons.Outlined.LockOpen, "Lock") }
                 IconButton(onClick = onOutline) { Icon(Icons.AutoMirrored.Outlined.FormatListBulleted, "Outline") }
-                Box {
-                    var showDocSettings by remember { mutableStateOf(false) }
-                    IconButton(onClick = { showDocSettings = true }) { Icon(Icons.Outlined.MoreVert, "Document settings") }
-                    DropdownMenu(expanded = showDocSettings, onDismissRequest = { showDocSettings = false }) {
-                        Text(
-                            "Document settings",
-                            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Column {
-                                    Text("Reflow")
-                                    Text(
-                                        "Blocks push down and adapt to new space",
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            },
-                            leadingIcon = {
-                                if (overlapMode == DocOverlapMode.Reflow) {
-                                    Icon(Icons.Outlined.Check, null, tint = MaterialTheme.colorScheme.primary)
-                                } else Spacer(Modifier.size(24.dp))
-                            },
-                            onClick = {
-                                showDocSettings = false
-                                if (overlapMode != DocOverlapMode.Reflow) onSetOverlapMode(DocOverlapMode.Reflow)
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Column {
-                                    Text("Free overlap")
-                                    Text(
-                                        "Allow overlapping blocks — permit blocks to\nbe dropped on top of existing content",
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            },
-                            leadingIcon = {
-                                if (overlapMode == DocOverlapMode.Overlap) {
-                                    Icon(Icons.Outlined.Check, null, tint = MaterialTheme.colorScheme.primary)
-                                } else Spacer(Modifier.size(24.dp))
-                            },
-                            onClick = {
-                                showDocSettings = false
-                                if (overlapMode != DocOverlapMode.Overlap) onSetOverlapMode(DocOverlapMode.Overlap)
-                            },
-                        )
-                    }
-                }
             }
             Surface(
                 modifier = Modifier.align(Alignment.CenterEnd).width(108.dp),
@@ -1742,12 +1301,9 @@ private fun SharedBlockRow(
     // Report window bounds for drag hit-testing; clear on dispose so stale rects never match.
     DisposableEffect(block.id) { onDispose { onReportBounds(null) } }
     val dropHintColor = MaterialTheme.colorScheme.primary
-    // While dragged, the source row becomes the placeholder slot: a dashed outline with the content
-    // ghosted, so the list keeps its height and neighbors displace around it. The block itself
-    // travels with the finger as the floating clone.
     val rowModifier = modifier.fillMaxWidth().let {
         if (mode == BlockSurfaceMode.Edit) it.animateContentSize() else it
-    }.let { if (isBeingDragged) it.dropSlotOutline(dropHintColor).alpha(.15f) else it }
+    }.let { if (isBeingDragged) it.alpha(.4f) else it }
     Row(
         rowModifier.background(
             if (selectedForRange) MaterialTheme.colorScheme.primaryContainer.copy(alpha = .55f) else Color.Transparent,
@@ -1912,35 +1468,6 @@ private fun DocumentBlock.isTextFamily(): Boolean = when (this) {
     is ParagraphBlock, is HeadingBlock, is BulletListBlock, is NumberedListBlock,
     is TodoListBlock, is QuoteBlock, is CodeBlock, is DividerBlock -> true
     else -> false
-}
-
-@Composable
-private fun BlockCloneContent(block: DocumentBlock) {
-    // Non-interactive view-mode render used by the floating drag clone; scrolling=true keeps heavy
-    // blocks (webview charts/diagrams) in their lightweight placeholder state during the drag.
-    RenderBlock(
-        block = block,
-        mode = BlockSurfaceMode.View,
-        focus = null,
-        onFocusConsumed = {},
-        onReplace = {},
-        onEditText = { _, _ -> },
-        onReplaceInline = { _, _, _ -> },
-        onEditListItem = { _, _, _ -> },
-        onEditTodoItem = { _, _, _ -> },
-        onSplitListItem = { _, _ -> },
-        onExitListItem = {},
-        onMergeListItem = {},
-        onSplit = {},
-        onMerge = {},
-        onInsert = {},
-        scrolling = true,
-        onEditChart = {},
-        onEditMath = {},
-        onEditDiagram = {},
-        onSelectionChange = {},
-        renderChild = { child -> BlockCloneContent(child) },
-    )
 }
 
 @Composable

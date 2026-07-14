@@ -115,22 +115,24 @@ If you finish your lane and everything above is already true → post `LEAVE`, s
 ---
 
 ## 7. Keep-alive & battery safety — ONE script, started once by A1, stopped at the very end
-Do NOT dedicate an agent to power management. There is a single self-contained script: **`codex-handoffs/keep-awake.sh`**. It keeps the Windows host awake (harmless F15 nudge every 60s) and, unconditionally, **sleeps the host if battery drops below 20% while unplugged**. It changes no Windows power settings, so stopping it is the only cleanup.
+Do NOT dedicate an agent to power management. There is a single self-contained script: **`codex-handoffs/keep-awake.sh`**. On start it sets the Windows **sleep timeout to Never** (screen/display timeout is left untouched) after saving the original value; and, unconditionally, it **force-sleeps the host if battery drops below 20% while unplugged**. On stop it **restores the original sleep timeout** — so it must be stopped with a plain `kill` (SIGTERM), never `kill -9`.
 
-**Start it once, at mission start (A1):**
+> **⚠️ ALREADY RUNNING — DO NOT START A SECOND COPY.** The user has already replaced the old script and (re)started it. The **current live PID is in `codex-handoffs/coordination/keep-awake.pid`** — check it before doing anything. If a keep-awake process is already alive (`kill -0 "$(cat codex-handoffs/coordination/keep-awake.pid)"` succeeds), **skip the start step entirely** and just use that PID for the stop step at the end. Only start it if the PID file is missing or the process is dead.
+
+**Start it once, at mission start (A1) — ONLY if not already running:**
 ```
 nohup bash codex-handoffs/keep-awake.sh > codex-handoffs/coordination/keep-awake.out 2>&1 &
 echo $! > codex-handoffs/coordination/keep-awake.pid
 ```
-Record that PID line in `BOARD.md` too. It's WSL-only and drives Windows via `powershell.exe`; the script self-checks that interop works and exits with an error if not (if it errors, note it in the log and continue — the mission still runs, the host just won't be force-kept-awake).
+Record that PID line in `BOARD.md` too. It's WSL-only and drives Windows via `powercfg.exe`/`powershell.exe`; the script self-checks that interop works and exits with an error if not (if it errors, note it in the log and continue — the mission still runs, the host just won't be force-kept-awake).
 
 **Because the host can sleep at any moment under 20%,** every agent must **commit work frequently** (you already do, per §5) — an unplugged low battery will suspend the machine without warning, and only committed work survives cleanly. On wake (charger reconnected), re-read `AGENT_LOG.md` and continue.
 
-**Stop it at the very end (mission fully done):**
+**Stop it at the very end (mission fully done) with a plain kill so the restore trap runs:**
 ```
-kill "$(cat codex-handoffs/coordination/keep-awake.pid)"
+kill "$(cat codex-handoffs/coordination/keep-awake.pid)"    # SIGTERM — restores original sleep timeout. NEVER kill -9.
 ```
-Log it as `SYS | keep-awake stopped`. Nothing else to restore.
+Log it as `SYS | keep-awake stopped`. The script restores the Windows sleep timeout it saved at startup (originals are also printed at the top of `keep-awake.out` if a manual restore is ever needed).
 
 ---
 
