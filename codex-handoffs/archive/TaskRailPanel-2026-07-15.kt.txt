@@ -1,0 +1,131 @@
+
+@Composable
+private fun TaskRailPanel(
+    action: TaskRailAction?,
+    modifier: Modifier,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    assignees: List<String>,
+    assigneeFilter: String,
+    onAssigneeFilter: (String) -> Unit,
+    labels: List<String>,
+    labelFilter: String,
+    onLabelFilter: (String) -> Unit,
+    priorityFilter: TaskPriority?,
+    onPriorityFilter: (TaskPriority?) -> Unit,
+    sort: TaskWorkspaceSort,
+    onSortChange: (TaskWorkspaceSort) -> Unit,
+    compact: Boolean,
+    onCompactChange: (Boolean) -> Unit,
+    boards: List<TaskBoardItem>,
+    selectedBoardId: Long,
+    onSelectBoard: (Long) -> Unit,
+    boardName: String,
+    onBoardNameChange: (String) -> Unit,
+    onRenameBoard: (String) -> Unit,
+    newBoardName: String,
+    onNewBoardNameChange: (String) -> Unit,
+    onCreateBoard: () -> Unit,
+    newColumnName: String,
+    onNewColumnNameChange: (String) -> Unit,
+    onCreateColumn: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var tab by remember(action) { mutableStateOf(TaskRailAction.Filter) }
+    AnimatedVisibility(visible = action != null, modifier = modifier) {
+        Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(22.dp), tonalElevation = 6.dp) {
+            Column(
+                Modifier.heightIn(max = 620.dp).verticalScroll(rememberScrollState()).padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf(TaskRailAction.Filter, TaskRailAction.Sort, TaskRailAction.New, TaskRailAction.Settings).forEach { item ->
+                        TextButton(onClick = { tab = item }, modifier = Modifier.weight(1f)) {
+                            Text(item.name, color = if (tab == item) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, "Close task controls") }
+                }
+                HorizontalDivider()
+                when (tab) {
+                    TaskRailAction.Search -> OutlinedTextField(query, onQueryChange, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Search") }, colors = taskTextFieldColors())
+                    TaskRailAction.Filter -> {
+                        FilterChips("Assignee", assignees, assigneeFilter, onAssigneeFilter)
+                        FilterChips("Label", labels, labelFilter, onLabelFilter)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AssistChip(onClick = { onPriorityFilter(null) }, label = { Text("All") })
+                            TaskPriority.entries.forEach { priority ->
+                                AssistChip(onClick = { onPriorityFilter(priority) }, label = { Text(priority.label()) })
+                            }
+                        }
+                        Text("Active: ${assigneeFilter.ifBlank { "anyone" }} / ${labelFilter.ifBlank { "any label" }} / ${priorityFilter?.label() ?: "any priority"}")
+                    }
+                    TaskRailAction.Sort -> TaskWorkspaceSort.entries.forEach { mode ->
+                        AssistChip(onClick = { onSortChange(mode) }, label = { Text(if (mode == sort) "${mode.label} ✓" else mode.label) })
+                    }
+                    TaskRailAction.New -> {
+                        OutlinedTextField(newBoardName, onNewBoardNameChange, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("New board") }, colors = taskTextFieldColors())
+                        Button(onClick = onCreateBoard, enabled = newBoardName.isNotBlank()) { Text("Create board") }
+                        HorizontalDivider()
+                        OutlinedTextField(newColumnName, onNewColumnNameChange, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("New column") }, colors = taskTextFieldColors())
+                        Button(onClick = onCreateColumn, enabled = newColumnName.isNotBlank()) { Text("Create column") }
+                    }
+                    TaskRailAction.Settings -> {
+                        var showRename by remember { mutableStateOf(false) }
+                        TaskSettingsCard("Board") {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(boards, key = { it.id }) { board ->
+                                    AssistChip(onClick = { onSelectBoard(board.id) }, label = { Text(if (board.id == selectedBoardId) "${board.name} ✓" else board.name) })
+                                }
+                            }
+                            Surface(
+                                color = MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(boardName.ifBlank { "Untitled board" }, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    IconButton(onClick = { showRename = true }) { Icon(Icons.Outlined.Edit, null, tint = MaterialTheme.colorScheme.primary) }
+                                }
+                            }
+                        }
+                        if (showRename) {
+                            BoardRenameDialog(
+                                initial = boardName,
+                                onDismiss = { showRename = false },
+                                onConfirm = { next ->
+                                    onBoardNameChange(next)
+                                    onRenameBoard(next)
+                                    showRename = false
+                                },
+                            )
+                        }
+                        TaskSettingsCard("Layout") {
+                            AssistChip(onClick = { onCompactChange(!compact) }, label = { Text(if (compact) "Compact cards ✓" else "Comfortable cards") })
+                            Text("Default view: Table", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// --- TaskSettingsCard (helper used only by the old rail) ---
+@Composable
+private fun TaskSettingsCard(title: String, content: @Composable () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)),
+        tonalElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(title.uppercase(), fontWeight = FontWeight.Black, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)
+            content()
+        }
+    }
+}
