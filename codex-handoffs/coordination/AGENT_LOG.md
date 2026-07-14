@@ -238,3 +238,10 @@
 2026-07-14T14:43:26+06:00 | A1 | LOCK EMULATOR | Final Part0 repair-artifact cleanup after A3R acceptance handback
 2026-07-14T14:43:26+06:00 | A1 | CLEANUP Part0 | Removed scoped database repair copies from app cache and `/data/local/tmp`; canonical app database and accepted Dark state retained
 2026-07-14T14:43:26+06:00 | A1 | UNLOCK EMULATOR | Final Part0 device-artifact cleanup complete
+2026-07-14T14:45:00+06:00 | A1 | LOCK FILE-BOARD | Record completed Part0 gate and accepted Light/Dark evidence
+2026-07-14T14:45:00+06:00 | A1 | COMMIT Part0 28c5a5c | Phone-sized Light/Dark acceptance evidence, explicit checklist, and MASTER_ORDER Step 22 completion recorded
+2026-07-14T14:45:00+06:00 | A1 | PART 0 DONE | Full Part0 DoD passed: green tests/APK, installed interaction matrix, persistence/rotation/stress cases, paired visual proof, independent review, and cleanup
+2026-07-14T14:45:00+06:00 | A1 | PHASE-A DONE | Part0 serial foundation gate is complete; Phase-B builder integrations are released in required Part4-then-Part5 hotspot order
+2026-07-14T14:45:00+06:00 | A1 | UNLOCK FILE-BlockNoteEditorScreen | Released to A3R for Part4 editor integration
+2026-07-14T14:45:00+06:00 | A1 | UNLOCK FILE-MarkdownWebView | Released after Part0 renderer acceptance
+2026-07-14T14:45:00+06:00 | A1 | UNLOCK FILE-BOARD | Part0 board update complete
