@@ -1,0 +1,137 @@
+@Composable
+private fun CreateTaskDialog(
+    columns: List<TaskColumnItem>,
+    properties: List<TaskPropertyDefinition>,
+    onAddProperty: () -> Unit,
+    onDismiss: () -> Unit,
+    onCreate: (TaskCreationPayload) -> Unit,
+) {
+    var title by remember { mutableStateOf("") }
+    var start by remember { mutableStateOf("") }
+    var end by remember { mutableStateOf("") }
+    var due by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    var checklist by remember { mutableStateOf("") }
+    var selectedColumn by remember(columns) { mutableStateOf(columns.first()) }
+    var priority by remember { mutableStateOf(TaskPriority.Normal) }
+
+    NorfoldContentDialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().widthIn(max = 620.dp).heightIn(max = 720.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            shadowElevation = 16.dp,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("New task", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Title") },
+                    colors = taskTextFieldColors(),
+                )
+                Text("Dates", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    CompactTaskDraftField("Start", start, { start = it }, Modifier.weight(1f))
+                    CompactTaskDraftField("End", end, { end = it }, Modifier.weight(1f))
+                    CompactTaskDraftField("Due", due, { due = it }, Modifier.weight(1f))
+                }
+                Text("Use YYYY-MM-DD", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 86.dp),
+                    label = { Text("Note") },
+                    colors = taskTextFieldColors(),
+                )
+                OutlinedTextField(
+                    value = checklist,
+                    onValueChange = { checklist = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 92.dp),
+                    label = { Text("Checklist") },
+                    supportingText = { Text("One item per line") },
+                    colors = taskTextFieldColors(),
+                )
+                Text("Status", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(columns, key = { it.id }) { column ->
+                        AssistChip(
+                            onClick = { selectedColumn = column },
+                            label = { Text(if (selectedColumn.id == column.id) "${column.name} ✓" else column.name) },
+                        )
+                    }
+                }
+                Text("Priority", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(TaskPriority.entries) { option ->
+                        AssistChip(
+                            onClick = { priority = option },
+                            label = { Text(if (priority == option) "${option.label()} ✓" else option.label()) },
+                        )
+                    }
+                }
+                Surface(
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onAddProperty),
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                ) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Outlined.Add, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                        Text("Add property", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
+                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    Button(
+                        enabled = title.isNotBlank(),
+                        onClick = {
+                            val startAt = parseTaskDraftDate(start)
+                            val endAt = parseTaskDraftDate(end)
+                            val dueAt = parseTaskDraftDate(due)
+                            val values = buildMap {
+                                put(TaskPropertyType.Status, selectedColumn.name)
+                                put(TaskPropertyType.Priority, priority.name)
+                                if (note.isNotBlank()) put(TaskPropertyType.Text, note.trim())
+                                if (startAt != null || endAt != null) {
+                                    val type = if (properties.any { it.type == TaskPropertyType.Date }) TaskPropertyType.Date else TaskPropertyType.DueDate
+                                    put(type, TaskDateRangeCodec.encode(TaskDateRange(startAt, endAt, allDay = true)))
+                                }
+                                if (dueAt != null) {
+                                    put(TaskPropertyType.DueDate, TaskDateRangeCodec.encode(TaskDateRange(startAt ?: dueAt, dueAt, allDay = true)))
+                                }
+                            }
+                            onCreate(
+                                TaskCreationPayload(
+                                    title = title.trim(),
+                                    column = selectedColumn,
+                                    propertyValues = values,
+                                    checklistItems = checklist.lineSequence().map(String::trim).filter(String::isNotBlank).toList(),
+                                ),
+                            )
+                        },
+                    ) { Text("Create") }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompactTaskDraftField(label: String, value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        singleLine = true,
+        label = { Text(label) },
+        colors = taskTextFieldColors(),
+    )
+}
+

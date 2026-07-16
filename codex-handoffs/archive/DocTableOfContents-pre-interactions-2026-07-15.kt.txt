@@ -1,0 +1,64 @@
+// Archived 2026-07-15: pre-Phase-2 DocTableOfContents (tap-only ToC) from SidebarScreen.kt
+
+/**
+ * The open Doc's table of contents — the sidebar's whole body while inside a Doc (viewing or
+ * editing). Tapping a heading fires [NotesViewModel.scrollToBlock]; the editor observes the
+ * request and scrolls (or, in free-canvas mode, pans) to the heading's top-level block.
+ */
+@Composable
+private fun DocTableOfContents(note: Note, viewModel: NotesViewModel) {
+    val headings = remember(note.id, note.document) { DocOutline.extract(note.document) }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+            .padding(vertical = 6.dp),
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.AutoMirrored.Outlined.FormatListBulleted, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "On this page",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (headings.isEmpty()) {
+            Text(
+                "No headings yet",
+                Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            headings.forEach { heading ->
+                Text(
+                    heading.label,
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            viewModel.scrollToBlock(heading.blockId)
+                            viewModel.closeSidebar()
+                        }
+                        .padding(
+                            start = (14 + (heading.level.coerceAtMost(4) - 1) * 12).dp,
+                            end = 14.dp,
+                            top = 7.dp,
+                            bottom = 7.dp,
+                        ),
+                    fontSize = 13.sp,
+                    fontWeight = if (heading.level <= 1) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+

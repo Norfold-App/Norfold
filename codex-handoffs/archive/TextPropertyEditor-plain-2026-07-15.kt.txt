@@ -1,0 +1,41 @@
+
+@Composable
+private fun TextPropertyEditor(task: TaskItem, property: TaskPropertyDefinition, initial: String, viewModel: NotesViewModel) {
+    var editing by remember(task.id, property.id, initial) { mutableStateOf(initial.isBlank()) }
+    var text by remember(task.id, property.id, initial) { mutableStateOf(initial) }
+    if (!editing) {
+        PropertyPreviewCard(text, property)
+        TextButton(onClick = { editing = true }) {
+            Icon(Icons.Outlined.Edit, null)
+            Spacer(Modifier.width(6.dp))
+            Text("Edit")
+        }
+        return
+    }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { text = it },
+        modifier = Modifier.fillMaxWidth().heightIn(min = if (property.type == TaskPropertyType.Text) 96.dp else 54.dp),
+        placeholder = { Text(property.type.defaultPropertyName()) },
+        colors = taskTextFieldColors(),
+    )
+    if (property.type == TaskPropertyType.Text) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            item { AssistChip(onClick = { text += "\n- [ ] " }, label = { Text("Checklist") }, leadingIcon = { Icon(Icons.Outlined.CheckBox, null) }) }
+            item { AssistChip(onClick = { text += "\n| Column | Value |\n| --- | --- |\n" }, label = { Text("Table") }, leadingIcon = { Icon(Icons.Outlined.TableRows, null) }) }
+            item { AssistChip(onClick = { text += "\n---\n" }, label = { Text("Divider") }, leadingIcon = { Icon(Icons.Outlined.Title, null) }) }
+            item { AssistChip(onClick = { text += "[](url)" }, label = { Text("Link") }, leadingIcon = { Icon(Icons.Outlined.Link, null) }) }
+        }
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        TextButton(onClick = {
+            text = initial
+            editing = false
+        }) { Text("Cancel") }
+        Button(onClick = {
+            viewModel.setTaskPropertyValue(task, property, text)
+            editing = false
+        }) { Text("Save") }
+    }
+}
+

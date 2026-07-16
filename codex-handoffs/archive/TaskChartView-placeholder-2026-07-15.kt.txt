@@ -1,0 +1,19 @@
+@Composable
+private fun TaskChartView(tasks: List<TaskItem>) {
+    val groups = TaskStatus.entries.associateWith { status -> tasks.count { it.status == status } }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Chart", fontWeight = FontWeight.Black, fontSize = 22.sp)
+        groups.forEach { (status, count) ->
+            Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp)) {
+                    Row {
+                        Text(status.label(), modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                        Text(count.toString())
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    LinearProgressIndicator(progress = { if (tasks.isEmpty()) 0f else count / tasks.size.toFloat() }, modifier = Modifier.fillMaxWidth())
+                }
+            }
+        }
+    }
+}

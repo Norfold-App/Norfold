@@ -1,0 +1,291 @@
+ * a transient local map (same pattern as the workspace canvas) and persist on gesture end; z always
+ * comes from the stored layout so the layer menu applies instantly. While a block moves, other
+ * blocks' edges/centers within [FreeformSnapThresholdDp] snap the drag and draw dashed guides.
+ */
+@Composable
+private fun FreeformDocCanvas(
+    blocks: List<DocumentBlock>,
+    layout: Map<String, FreeformPlacement>,
+    editMode: Boolean,
+    onSeedLayout: (Map<String, FreeformPlacement>) -> Unit,
+    onCommitPlacement: (String, FreeformPlacement) -> Unit,
+    onBringToFront: (String) -> Unit,
+    onBringForward: (String) -> Unit,
+    onSendBackward: (String) -> Unit,
+    onSendToBack: (String) -> Unit,
+    onBackgroundTap: () -> Unit,
+    onBackgroundDoubleTap: () -> Unit,
+    scrollState: ScrollState,
+    modifier: Modifier = Modifier,
+    renderBlock: @Composable (DocumentBlock) -> Unit,
+) {
+    // Blocks without a stored placement (first entry into Overlap mode, or newly inserted) cascade
+    // down the page below the lowest existing block, each on its own fresh top layer.
+    val effectiveLayout = remember(blocks, layout) {
+        val merged = layout.toMutableMap()
+        var nextY = (layout.values.maxOfOrNull { it.y + it.height } ?: 0f) + 16f
+        var nextZ = (layout.values.maxOfOrNull { it.z } ?: -1) + 1
+        blocks.forEach { block ->
+            if (block.id !in merged) {
+                merged[block.id] = FreeformPlacement(x = 16f, y = nextY, width = 328f, height = 160f, z = nextZ++)
+                nextY += 176f
+            }
+        }
+        merged
+    }
+    LaunchedEffect(layout, blocks) {
+        if (blocks.any { it.id !in layout }) {
+            onSeedLayout(effectiveLayout.filterKeys { id -> blocks.any { it.id == id } })
+        }
+    }
+    // Gesture closures survive recomposition, so they must read layout/blocks through these.
+    val latestLayout = rememberUpdatedState(effectiveLayout)
+    val latestBlocks = rememberUpdatedState(blocks)
+    // In-flight move/resize overrides; an entry clears once the persisted layout catches up so the
+    // block never snaps back while the write round-trips through the repository.
+    val localPlacements = remember { mutableStateMapOf<String, FreeformPlacement>() }
+    LaunchedEffect(layout) {
+        localPlacements.keys.toList().forEach { id ->
+            val local = localPlacements[id] ?: return@forEach
+            val stored = layout[id] ?: return@forEach
+            if (stored.copy(z = 0) == local.copy(z = 0)) localPlacements.remove(id)
+        }
+    }
+    fun displayed(id: String, source: Map<String, FreeformPlacement> = effectiveLayout): FreeformPlacement {
+        val stored = source[id] ?: FreeformPlacement()
+        return (localPlacements[id] ?: stored).copy(z = stored.z)
+    }
+    var movingId by remember { mutableStateOf<String?>(null) }
+    val verticalGuides = remember { mutableStateListOf<Float>() }
+    val horizontalGuides = remember { mutableStateListOf<Float>() }
+    fun clearGuides() {
+        verticalGuides.clear()
+        horizontalGuides.clear()
+    }
+    // Nearest own-line → other-line match within threshold; returns (delta to apply, guide line).
+    fun snapDelta(own: List<Float>, targets: List<Float>): Pair<Float, Float>? {
+        var best: Pair<Float, Float>? = null
+        own.forEach { o ->
+            targets.forEach { t ->
+                val d = t - o
+                if (abs(d) <= FreeformSnapThresholdDp && (best == null || abs(d) < abs(best!!.first))) best = d to t
+            }
+        }
+        return best
+    }
+    val zOrder = effectiveLayout.entries.sortedWith(compareBy({ it.value.z }, { it.key })).map { it.key }
+    val contentHeight = ((blocks.maxOfOrNull { block -> displayed(block.id).let { it.y + it.height } } ?: 480f) + 320f).dp
+    val guideColor = MaterialTheme.colorScheme.primary
+    Box(
+        modifier
+            .verticalScroll(scrollState)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onBackgroundTap() },
+                    onDoubleTap = { onBackgroundDoubleTap() },
+                )
+            },
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(contentHeight)
+                .drawBehind {
+                    if (verticalGuides.isEmpty() && horizontalGuides.isEmpty()) return@drawBehind
+                    val dash = PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 6.dp.toPx()))
+                    verticalGuides.forEach { x ->
+                        drawLine(guideColor, Offset(x.dp.toPx(), 0f), Offset(x.dp.toPx(), size.height), strokeWidth = 1.5.dp.toPx(), pathEffect = dash)
+                    }
+                    horizontalGuides.forEach { y ->
+                        drawLine(guideColor, Offset(0f, y.dp.toPx()), Offset(size.width, y.dp.toPx()), strokeWidth = 1.5.dp.toPx(), pathEffect = dash)
+                    }
+                },
+        ) {
+            blocks.forEach { block ->
+                key(block.id) {
+                    val placement = displayed(block.id)
+                    val moving = movingId == block.id
+                    var layerMenu by remember { mutableStateOf(false) }
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(10.dp),
+                        tonalElevation = if (editMode) 1.dp else 0.dp,
+                        modifier = Modifier
+                            .offset { IntOffset(placement.x.dp.roundToPx(), placement.y.dp.roundToPx()) }
+                            .size(placement.width.dp, placement.height.dp)
+                            .zIndex(placement.z.toFloat() + if (moving) 1000f else 0f)
+                            .dragLift(lifted = moving, cornerRadius = 10.dp)
+                            .then(
+                                if (editMode) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
+                                else Modifier,
+                            ),
+                    ) {
+                        Box(Modifier.fillMaxSize()) {
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                            ) { renderBlock(block) }
+                            if (editMode) {
+                                Row(
+                                    Modifier.align(Alignment.TopEnd).padding(2.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box {
+                                        Icon(
+                                            Icons.Outlined.Layers,
+                                            contentDescription = "Layer options",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier
+                                                .size(26.dp)
+                                                .clip(CircleShape)
+                                                .clickable { layerMenu = true }
+                                                .padding(4.dp),
+                                        )
+                                        DropdownMenu(expanded = layerMenu, onDismissRequest = { layerMenu = false }) {
+                                            Text(
+                                                "Layer ${zOrder.indexOf(block.id) + 1} of ${zOrder.size}",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                            )
+                                            DropdownMenuItem(text = { Text("Bring to front") }, onClick = { layerMenu = false; onBringToFront(block.id) })
+                                            DropdownMenuItem(text = { Text("Bring forward") }, onClick = { layerMenu = false; onBringForward(block.id) })
+                                            DropdownMenuItem(text = { Text("Send backward") }, onClick = { layerMenu = false; onSendBackward(block.id) })
+                                            DropdownMenuItem(text = { Text("Send to back") }, onClick = { layerMenu = false; onSendToBack(block.id) })
+                                        }
+                                    }
+                                    Icon(
+                                        Icons.Outlined.DragIndicator,
+                                        contentDescription = "Move block",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier
+                                            .size(26.dp)
+                                            .clip(CircleShape)
+                                            .pointerInput(block.id) {
+                                                detectDragGestures(
+                                                    onDragStart = { movingId = block.id },
+                                                    onDragEnd = {
+                                                        movingId = null
+                                                        clearGuides()
+                                                        localPlacements[block.id]?.let { onCommitPlacement(block.id, it) }
+                                                    },
+                                                    onDragCancel = {
+                                                        movingId = null
+                                                        clearGuides()
+                                                        localPlacements.remove(block.id)
+                                                    },
+                                                ) { change, dragAmount ->
+                                                    change.consume()
+                                                    val stored = latestLayout.value[block.id] ?: FreeformPlacement()
+                                                    val current = localPlacements[block.id] ?: stored
+                                                    var nx = current.x + dragAmount.x.toDp().value
+                                                    var ny = (current.y + dragAmount.y.toDp().value).coerceAtLeast(0f)
+                                                    clearGuides()
+                                                    val others = latestBlocks.value
+                                                        .filter { it.id != block.id }
+                                                        .map { displayed(it.id, latestLayout.value) }
+                                                    snapDelta(
+                                                        listOf(nx, nx + current.width / 2f, nx + current.width),
+                                                        others.flatMap { listOf(it.x, it.x + it.width / 2f, it.x + it.width) },
+                                                    )?.let { (d, guide) ->
+                                                        nx += d
+                                                        verticalGuides.add(guide)
+                                                    }
+                                                    snapDelta(
+                                                        listOf(ny, ny + current.height / 2f, ny + current.height),
+                                                        others.flatMap { listOf(it.y, it.y + it.height / 2f, it.y + it.height) },
+                                                    )?.let { (d, guide) ->
+                                                        ny += d
+                                                        horizontalGuides.add(guide)
+                                                    }
+                                                    localPlacements[block.id] = current.copy(x = nx, y = ny)
+                                                }
+                                            }
+                                            .padding(4.dp),
+                                    )
+                                }
+                                // Corner resize handle.
+                                Box(
+                                    Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(3.dp)
+                                        .size(16.dp)
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f), CircleShape)
+                                        .pointerInput(block.id) {
+                                            detectDragGestures(
+                                                onDragEnd = {
+                                                    localPlacements[block.id]?.let { onCommitPlacement(block.id, it) }
+                                                },
+                                                onDragCancel = { localPlacements.remove(block.id) },
+                                            ) { change, dragAmount ->
+                                                change.consume()
+                                                val stored = latestLayout.value[block.id] ?: FreeformPlacement()
+                                                val current = localPlacements[block.id] ?: stored
+                                                localPlacements[block.id] = current.copy(
+                                                    width = (current.width + dragAmount.x.toDp().value).coerceAtLeast(120f),
+                                                    height = (current.height + dragAmount.y.toDp().value).coerceAtLeast(64f),
+                                                )
+                                            }
+                                        },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+--- scroll bridge (lines 279-291) + call site (658-675) ---
+    var activeSelection by remember(note.id) { mutableStateOf<EditorSelection?>(null) }
+    var linkEditorRequest by remember(note.id) { mutableStateOf<LinkEditorRequest?>(null) }
+    val listState = rememberLazyListState()
+    val overlapScrollState = rememberScrollState()
+    // Sidebar ToC taps: resolve the heading to its top-level ancestor, then scroll the Reflow list
+    // (or pan the free-overlap canvas to the block's stored y) and consume the one-shot request.
+    val scrollRequest by viewModel.scrollToBlockRequest.collectAsState()
+    val screenDensity = LocalDensity.current
+    LaunchedEffect(scrollRequest) {
+        val request = scrollRequest ?: return@LaunchedEffect
+        val entry = DocOutline.extract(renderedDocument).firstOrNull { it.blockId == request.blockId }
+        val topId = entry?.topLevelId ?: request.blockId
+        if (note.overlapMode == DocOverlapMode.Overlap) {
+            val y = (note.freeformLayout[topId]?.y ?: 0f) - 12f
+            overlapScrollState.animateScrollTo(with(screenDensity) { y.coerceAtLeast(0f).dp.roundToPx() })
+        } else {
+            val index = renderedDocument.blocks.indexOfFirst { it.id == topId }
+            if (index >= 0) listState.animateScrollToItem(index)
+        }
+        viewModel.consumeScrollToBlock()
+    }
+    val listScrolling by remember { derivedStateOf { listState.isScrollInProgress } }
+    val rangeBounds = remember(renderedDocument, rangeAnchorId, rangeExtentId) {
+                renderChild = { child -> BlockNode(child, index = -1, nested = true, rowModifier = Modifier) },
+            )
+        }
+        if (note.overlapMode == DocOverlapMode.Overlap) {
+            // Free-overlap mode: a completely freeform canvas (absolute x/y, explicit size, z-layers)
+            // replaces the stacked list; the Reflow LazyColumn path below is untouched.
+            FreeformDocCanvas(
+                blocks = renderedDocument.blocks,
+                layout = note.freeformLayout,
+                editMode = editMode,
+                onSeedLayout = { viewModel.updateFreeformLayout(note, it) },
+                onCommitPlacement = { id, placement -> viewModel.updateBlockPlacement(note, id, placement) },
+                onBringToFront = { viewModel.bringBlockToFront(note, it) },
+                onBringForward = { viewModel.bringBlockForward(note, it) },
+                onSendBackward = { viewModel.sendBlockBackward(note, it) },
+                onSendToBack = { viewModel.sendBlockToBack(note, it) },
+                onBackgroundTap = { if (editMode) { editMode = false; activeSelection = null } },
+                onBackgroundDoubleTap = { if (!editMode) editMode = true },
+                scrollState = overlapScrollState,
+                modifier = Modifier.widthIn(max = 960.dp).fillMaxSize().align(Alignment.CenterHorizontally).imePadding(),
+            ) { block -> BlockNode(block, index = -1, nested = true, rowModifier = Modifier) }
+        } else {
+        // Live reorder preview: while dragging over a top-level Top/Bottom edge, render the list with
+        // the dragged block moved to the would-be drop slot; animateItem() slides the neighbors. The
+        // real document is only mutated on drop (session.move in finishDrag), so aborting snaps back.
+        val displayBlocks = if (!previewReorderActive()) renderedDocument.blocks else {

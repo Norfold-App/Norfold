@@ -1,0 +1,532 @@
+{
+  "androidTest/java/com/norfold/app/data/BlockDocumentMigrationTest.kt": {
+    "mtime": 1783942373.568685,
+    "ast_hash": "afc7520f9d3aa22858931892cd105201",
+    "semantic_hash": "afc7520f9d3aa22858931892cd105201"
+  },
+  "androidTest/java/com/norfold/app/data/BlockDocumentRoomTest.kt": {
+    "mtime": 1784096304.3696203,
+    "ast_hash": "cfcd2d9fc47f97199372606ac7f96a3c",
+    "semantic_hash": "cfcd2d9fc47f97199372606ac7f96a3c"
+  },
+  "androidTest/java/com/norfold/app/domain/MarkdownCodecAndroidCompatibilityTest.kt": {
+    "mtime": 1783887912.4743297,
+    "ast_hash": "b520d1f299d8fd38088431420ea991d1",
+    "semantic_hash": "b520d1f299d8fd38088431420ea991d1"
+  },
+  "main/assets/preview/emoji-shortcodes.json": {
+    "mtime": 1783872900.7709687,
+    "ast_hash": "bca55572999669d1393ed302f774b0c1",
+    "semantic_hash": "bca55572999669d1393ed302f774b0c1"
+  },
+  "main/assets/preview/marked.min.js": {
+    "mtime": 1783364752.5476205,
+    "ast_hash": "b7319d77b4f8f6fde277c8a46fdb96ec",
+    "semantic_hash": "b7319d77b4f8f6fde277c8a46fdb96ec"
+  },
+  "main/assets/preview/mermaid.min.js": {
+    "mtime": 1783820892.3599188,
+    "ast_hash": "1dd12fadbfa258c3ac600e9e7f1d6a3d",
+    "semantic_hash": "1dd12fadbfa258c3ac600e9e7f1d6a3d"
+  },
+  "main/assets/preview/tex-svg.js": {
+    "mtime": 1783364753.6658785,
+    "ast_hash": "e767e9be86ed9a6bbe91b3908df7faf1",
+    "semantic_hash": "e767e9be86ed9a6bbe91b3908df7faf1"
+  },
+  "main/assets/preview/vega-embed.min.js": {
+    "mtime": 1783877690.7163868,
+    "ast_hash": "6c16a7bef9282abffd5b12ed17af3165",
+    "semantic_hash": "6c16a7bef9282abffd5b12ed17af3165"
+  },
+  "main/assets/preview/vega-lite.min.js": {
+    "mtime": 1783877690.4825428,
+    "ast_hash": "aef0873e20b3858ceb8022d8120456b5",
+    "semantic_hash": "aef0873e20b3858ceb8022d8120456b5"
+  },
+  "main/assets/preview/vega.min.js": {
+    "mtime": 1783877690.1225429,
+    "ast_hash": "11e4103e8161657b9466f0b27aff48fd",
+    "semantic_hash": "11e4103e8161657b9466f0b27aff48fd"
+  },
+  "main/java/com/norfold/app/MainActivity.kt": {
+    "mtime": 1783763679.807988,
+    "ast_hash": "063e18ab34fd7759415ccc907d492d9d",
+    "semantic_hash": "063e18ab34fd7759415ccc907d492d9d"
+  },
+  "main/java/com/norfold/app/NorfoldApplication.kt": {
+    "mtime": 1783763679.815988,
+    "ast_hash": "9eec352c86123d7b6576d3821f10217c",
+    "semantic_hash": "9eec352c86123d7b6576d3821f10217c"
+  },
+  "main/java/com/norfold/app/branding/AnimatedLogo.kt": {
+    "mtime": 1784086637.7948115,
+    "ast_hash": "eae75075a3160fab37207519eb67bf9c",
+    "semantic_hash": "eae75075a3160fab37207519eb67bf9c"
+  },
+  "main/java/com/norfold/app/branding/BrandPalettes.kt": {
+    "mtime": 1783777201.8772736,
+    "ast_hash": "f929d4f4efdcba00fddccea236277a43",
+    "semantic_hash": "f929d4f4efdcba00fddccea236277a43"
+  },
+  "main/java/com/norfold/app/branding/BuiltInCovers.kt": {
+    "mtime": 1783763680.1768522,
+    "ast_hash": "e41a314a96def9273b8fab04c2e9f3f1",
+    "semantic_hash": "e41a314a96def9273b8fab04c2e9f3f1"
+  },
+  "main/java/com/norfold/app/cloud/ExternalServiceConfig.kt": {
+    "mtime": 1783785952.0611484,
+    "ast_hash": "506d3aa0e0211ae96734896d2ff298b5",
+    "semantic_hash": "506d3aa0e0211ae96734896d2ff298b5"
+  },
+  "main/java/com/norfold/app/cloud/GoogleIdentityClient.kt": {
+    "mtime": 1783763681.0119877,
+    "ast_hash": "9e20b9fdaa85e99d0c473c862f64aecb",
+    "semantic_hash": "9e20b9fdaa85e99d0c473c862f64aecb"
+  },
+  "main/java/com/norfold/app/cloud/NorfoldMessagingService.kt": {
+    "mtime": 1783763681.0225747,
+    "ast_hash": "bbaecdaf6932787d8bbe2505011a208a",
+    "semantic_hash": "bbaecdaf6932787d8bbe2505011a208a"
+  },
+  "main/java/com/norfold/app/cloud/NorfoldSupabase.kt": {
+    "mtime": 1783785952.0891485,
+    "ast_hash": "6a8139090ea137570153eed5e1b5bacb",
+    "semantic_hash": "6a8139090ea137570153eed5e1b5bacb"
+  },
+  "main/java/com/norfold/app/data/BackupFolderStore.kt": {
+    "mtime": 1783763679.8288395,
+    "ast_hash": "e08c3ebff94b46cc808e1ec2a2228c55",
+    "semantic_hash": "e08c3ebff94b46cc808e1ec2a2228c55"
+  },
+  "main/java/com/norfold/app/data/CloudFolderSyncStore.kt": {
+    "mtime": 1783763679.8617053,
+    "ast_hash": "22a1d78e1bc42d2a4e8ae79750892430",
+    "semantic_hash": "22a1d78e1bc42d2a4e8ae79750892430"
+  },
+  "main/java/com/norfold/app/data/CloudSyncQueue.kt": {
+    "mtime": 1783763679.8742895,
+    "ast_hash": "a1c41d45d6cc39bab788e25a0d890b13",
+    "semantic_hash": "a1c41d45d6cc39bab788e25a0d890b13"
+  },
+  "main/java/com/norfold/app/data/DiagnosticsStore.kt": {
+    "mtime": 1783763679.884925,
+    "ast_hash": "c0e0777e371c56fb4e56ba92300dda74",
+    "semantic_hash": "c0e0777e371c56fb4e56ba92300dda74"
+  },
+  "main/java/com/norfold/app/data/Entities.kt": {
+    "mtime": 1784083455.7632189,
+    "ast_hash": "e7e997ea36049af5c1b677e284c9b7d2",
+    "semantic_hash": "e7e997ea36049af5c1b677e284c9b7d2"
+  },
+  "main/java/com/norfold/app/data/GoogleDriveApiSyncStore.kt": {
+    "mtime": 1783763679.9695156,
+    "ast_hash": "1a18e9970201e4aa7853401644b8eb9e",
+    "semantic_hash": "1a18e9970201e4aa7853401644b8eb9e"
+  },
+  "main/java/com/norfold/app/data/GoogleDriveAuthStore.kt": {
+    "mtime": 1783763679.98022,
+    "ast_hash": "40457542d203b2b88ff44e13759e20e8",
+    "semantic_hash": "40457542d203b2b88ff44e13759e20e8"
+  },
+  "main/java/com/norfold/app/data/GoogleDriveOAuth.kt": {
+    "mtime": 1783763679.989138,
+    "ast_hash": "36c53a1aa33ba5e66566ece96c268a48",
+    "semantic_hash": "36c53a1aa33ba5e66566ece96c268a48"
+  },
+  "main/java/com/norfold/app/data/NorfoldDatabase.kt": {
+    "mtime": 1784083562.2712104,
+    "ast_hash": "46c4101accf12da7ca5ec24f3a784762",
+    "semantic_hash": "46c4101accf12da7ca5ec24f3a784762"
+  },
+  "main/java/com/norfold/app/data/NotesDao.kt": {
+    "mtime": 1784041528.964619,
+    "ast_hash": "8e6b021716176dfda38bcbff03772ff1",
+    "semantic_hash": "8e6b021716176dfda38bcbff03772ff1"
+  },
+  "main/java/com/norfold/app/data/NotesRepository.kt": {
+    "mtime": 1784083457.6752186,
+    "ast_hash": "6ba57502b04863d417c26ac3d5f29ee8",
+    "semantic_hash": "6ba57502b04863d417c26ac3d5f29ee8"
+  },
+  "main/java/com/norfold/app/domain/BackupCodec.kt": {
+    "mtime": 1784041738.4285939,
+    "ast_hash": "708e87ae9c0fc36a85236bd9d8dbb04d",
+    "semantic_hash": "708e87ae9c0fc36a85236bd9d8dbb04d"
+  },
+  "main/java/com/norfold/app/domain/BlockDocument.kt": {
+    "mtime": 1784026526.3816185,
+    "ast_hash": "16bbd119a499496dccdc8d77f43dcfa8",
+    "semantic_hash": "16bbd119a499496dccdc8d77f43dcfa8"
+  },
+  "main/java/com/norfold/app/domain/BlockEditorSession.kt": {
+    "mtime": 1784094768.6218092,
+    "ast_hash": "380c6a821d7f4f4309f9bbe1c5ea2823",
+    "semantic_hash": "380c6a821d7f4f4309f9bbe1c5ea2823"
+  },
+  "main/java/com/norfold/app/domain/BlockTree.kt": {
+    "mtime": 1784026777.8415906,
+    "ast_hash": "e26be5f1fbc552a239419b275232bf47",
+    "semantic_hash": "e26be5f1fbc552a239419b275232bf47"
+  },
+  "main/java/com/norfold/app/domain/ChartSpecCodec.kt": {
+    "mtime": 1784053965.3870761,
+    "ast_hash": "a8de4d7741bd7eb9a1b33d0ef5d10841",
+    "semantic_hash": "a8de4d7741bd7eb9a1b33d0ef5d10841"
+  },
+  "main/java/com/norfold/app/domain/DocLayout.kt": {
+    "mtime": 1784096238.8376267,
+    "ast_hash": "47803c8d8e0641719ccba46fe95674b5",
+    "semantic_hash": "47803c8d8e0641719ccba46fe95674b5"
+  },
+  "main/java/com/norfold/app/domain/DocOutline.kt": {
+    "mtime": 1784048768.2317412,
+    "ast_hash": "c47ef9a1ae5e96c78c8ce79c3cb685b8",
+    "semantic_hash": "c47ef9a1ae5e96c78c8ce79c3cb685b8"
+  },
+  "main/java/com/norfold/app/domain/DocPagination.kt": {
+    "mtime": 1784098411.7893624,
+    "ast_hash": "185d3f4329293e62fdbcb55da686cdca",
+    "semantic_hash": "185d3f4329293e62fdbcb55da686cdca"
+  },
+  "main/java/com/norfold/app/domain/DocSections.kt": {
+    "mtime": 1784094704.377821,
+    "ast_hash": "50793e25622300d3258f8033c4083b56",
+    "semantic_hash": "50793e25622300d3258f8033c4083b56"
+  },
+  "main/java/com/norfold/app/domain/MarkdownBlockCodec.kt": {
+    "mtime": 1784053660.8991177,
+    "ast_hash": "6903690c54ff7ff9e7d0d5179e169245",
+    "semantic_hash": "6903690c54ff7ff9e7d0d5179e169245"
+  },
+  "main/java/com/norfold/app/domain/MarkdownExporter.kt": {
+    "mtime": 1784098472.8573546,
+    "ast_hash": "ec2eeac9ea7551078ba9a270aa05ccec",
+    "semantic_hash": "ec2eeac9ea7551078ba9a270aa05ccec"
+  },
+  "main/java/com/norfold/app/domain/Models.kt": {
+    "mtime": 1784083375.8152325,
+    "ast_hash": "2bc9321ed6b71713754fa462d142eb9f",
+    "semantic_hash": "2bc9321ed6b71713754fa462d142eb9f"
+  },
+  "main/java/com/norfold/app/domain/SmartPasteCodec.kt": {
+    "mtime": 1783871367.0271223,
+    "ast_hash": "f75fd219b91a670314f76b545926a4fa",
+    "semantic_hash": "f75fd219b91a670314f76b545926a4fa"
+  },
+  "main/java/com/norfold/app/domain/SyncConflictReport.kt": {
+    "mtime": 1783978337.3879828,
+    "ast_hash": "40f4e1535ac303ada3efd946b7463c4d",
+    "semantic_hash": "40f4e1535ac303ada3efd946b7463c4d"
+  },
+  "main/java/com/norfold/app/domain/TaskChartSpec.kt": {
+    "mtime": 1784061062.6782088,
+    "ast_hash": "dac3696fab34cf75672224170991ab88",
+    "semantic_hash": "dac3696fab34cf75672224170991ab88"
+  },
+  "main/java/com/norfold/app/domain/TaskDateRangeCodec.kt": {
+    "mtime": 1783765260.9047801,
+    "ast_hash": "9872c9d35d17d022a52432073914fc4b",
+    "semantic_hash": "9872c9d35d17d022a52432073914fc4b"
+  },
+  "main/java/com/norfold/app/domain/TaskMoveNormalizer.kt": {
+    "mtime": 1783763681.1595712,
+    "ast_hash": "0ed9c6cbe3ea644728ac50bba846ac8e",
+    "semantic_hash": "0ed9c6cbe3ea644728ac50bba846ac8e"
+  },
+  "main/java/com/norfold/app/domain/VaultCrypto.kt": {
+    "mtime": 1783765386.1598446,
+    "ast_hash": "32edf31d35b34d25759923d21acbea8b",
+    "semantic_hash": "32edf31d35b34d25759923d21acbea8b"
+  },
+  "main/java/com/norfold/app/domain/WeekHourBands.kt": {
+    "mtime": 1784085881.1229029,
+    "ast_hash": "a3e4311c6c1fad70ff4759a2927c35e3",
+    "semantic_hash": "a3e4311c6c1fad70ff4759a2927c35e3"
+  },
+  "main/java/com/norfold/app/ui/NorfoldAppRoot.kt": {
+    "mtime": 1784054756.5509853,
+    "ast_hash": "a2cb243b0d23dc3f6f57d5c3e5a0be0e",
+    "semantic_hash": "a2cb243b0d23dc3f6f57d5c3e5a0be0e"
+  },
+  "main/java/com/norfold/app/ui/NorfoldTheme.kt": {
+    "mtime": 1784055148.122944,
+    "ast_hash": "c615ed3733118d322d6274eda4e2b646",
+    "semantic_hash": "c615ed3733118d322d6274eda4e2b646"
+  },
+  "main/java/com/norfold/app/ui/NotesViewModel.kt": {
+    "mtime": 1784095617.7577095,
+    "ast_hash": "c8ed0674498f759dd5c28c261f85ea67",
+    "semantic_hash": "c8ed0674498f759dd5c28c261f85ea67"
+  },
+  "main/java/com/norfold/app/ui/SemanticColors.kt": {
+    "mtime": 1783777249.0012603,
+    "ast_hash": "146dd1b1c6026f05f23a3180088d0e2c",
+    "semantic_hash": "146dd1b1c6026f05f23a3180088d0e2c"
+  },
+  "main/java/com/norfold/app/ui/components/AppBars.kt": {
+    "mtime": 1783978041.2599955,
+    "ast_hash": "7c8db441573d8be07449e2a493c7d61c",
+    "semantic_hash": "7c8db441573d8be07449e2a493c7d61c"
+  },
+  "main/java/com/norfold/app/ui/components/ChartBuilderSheet.kt": {
+    "mtime": 1784054688.017229,
+    "ast_hash": "8ec8f366c763fb626e386764dc8fa0fa",
+    "semantic_hash": "8ec8f366c763fb626e386764dc8fa0fa"
+  },
+  "main/java/com/norfold/app/ui/components/CommonComponents.kt": {
+    "mtime": 1783978041.2919955,
+    "ast_hash": "1e7f0f862cc39f51b45c49094514f4b6",
+    "semantic_hash": "1e7f0f862cc39f51b45c49094514f4b6"
+  },
+  "main/java/com/norfold/app/ui/components/DiagramBuilderSheet.kt": {
+    "mtime": 1784054688.027063,
+    "ast_hash": "c7c9aad30d65718df57229c348f3451c",
+    "semantic_hash": "c7c9aad30d65718df57229c348f3451c"
+  },
+  "main/java/com/norfold/app/ui/components/EmbedMetadataResolver.kt": {
+    "mtime": 1783975895.7398736,
+    "ast_hash": "faa65142397f1b7b46330b487d712a15",
+    "semantic_hash": "faa65142397f1b7b46330b487d712a15"
+  },
+  "main/java/com/norfold/app/ui/components/LiveMarkdownField.kt": {
+    "mtime": 1784083700.503185,
+    "ast_hash": "cb559737a3d153fb11c9b0c66159e419",
+    "semantic_hash": "cb559737a3d153fb11c9b0c66159e419"
+  },
+  "main/java/com/norfold/app/ui/components/MarkdownWebView.kt": {
+    "mtime": 1784054295.583042,
+    "ast_hash": "5be81f0b5312f73688bb69f7699f9d27",
+    "semantic_hash": "5be81f0b5312f73688bb69f7699f9d27"
+  },
+  "main/java/com/norfold/app/ui/components/MathBuilderSheet.kt": {
+    "mtime": 1784054688.0215077,
+    "ast_hash": "e15872015c66a392718e7a8bc5aa13ac",
+    "semantic_hash": "e15872015c66a392718e7a8bc5aa13ac"
+  },
+  "main/java/com/norfold/app/ui/components/MathMarkdownDetection.kt": {
+    "mtime": 1783979741.967845,
+    "ast_hash": "004fa157457ab9e88f12e312c17f2fce",
+    "semantic_hash": "004fa157457ab9e88f12e312c17f2fce"
+  },
+  "main/java/com/norfold/app/ui/components/Motion.kt": {
+    "mtime": 1783763680.9338028,
+    "ast_hash": "fbdffb3da2e52a0ca0a176afd95ed9b5",
+    "semantic_hash": "fbdffb3da2e52a0ca0a176afd95ed9b5"
+  },
+  "main/java/com/norfold/app/ui/components/NorfoldComponents.kt": {
+    "mtime": 1783766487.8397365,
+    "ast_hash": "c19a72858ca06238436de5f88191561a",
+    "semantic_hash": "c19a72858ca06238436de5f88191561a"
+  },
+  "main/java/com/norfold/app/ui/components/NorfoldPopup.kt": {
+    "mtime": 1784054649.5989978,
+    "ast_hash": "a101b6d66b8d0590240a05f237a741f2",
+    "semantic_hash": "a101b6d66b8d0590240a05f237a741f2"
+  },
+  "main/java/com/norfold/app/ui/components/RenderCache.kt": {
+    "mtime": 1784054243.9870505,
+    "ast_hash": "aea848e5948fde0fb7755cc43d05714b",
+    "semantic_hash": "aea848e5948fde0fb7755cc43d05714b"
+  },
+  "main/java/com/norfold/app/ui/components/SettingsKit.kt": {
+    "mtime": 1784054688.0131364,
+    "ast_hash": "4ba1faf25f4921fab41eea419c738362",
+    "semantic_hash": "4ba1faf25f4921fab41eea419c738362"
+  },
+  "main/java/com/norfold/app/ui/dnd/DragDrop.kt": {
+    "mtime": 1784044338.3802817,
+    "ast_hash": "8b012d23be2e40b56143c39abf7bdb57",
+    "semantic_hash": "8b012d23be2e40b56143c39abf7bdb57"
+  },
+  "main/java/com/norfold/app/ui/screens/BlockNoteEditorScreen.kt": {
+    "mtime": 1784098877.5691354,
+    "ast_hash": "d63373b5c01982db776fc508ab9726fb",
+    "semantic_hash": "d63373b5c01982db776fc508ab9726fb"
+  },
+  "main/java/com/norfold/app/ui/screens/CollectionScreens.kt": {
+    "mtime": 1783942058.0887141,
+    "ast_hash": "baee3763c0e211a3bb073dc041c4e27e",
+    "semantic_hash": "baee3763c0e211a3bb073dc041c4e27e"
+  },
+  "main/java/com/norfold/app/ui/screens/LockScreen.kt": {
+    "mtime": 1783763680.460459,
+    "ast_hash": "f6d08a71515bd52bd6916ddcaebe6223",
+    "semantic_hash": "f6d08a71515bd52bd6916ddcaebe6223"
+  },
+  "main/java/com/norfold/app/ui/screens/NotesHomeScreen.kt": {
+    "mtime": 1784054688.0415316,
+    "ast_hash": "ac29535a8c4b8f6ff1c176450d901ab3",
+    "semantic_hash": "ac29535a8c4b8f6ff1c176450d901ab3"
+  },
+  "main/java/com/norfold/app/ui/screens/ObjectDetailScreen.kt": {
+    "mtime": 1783978199.7039876,
+    "ast_hash": "c352fdcfb737c0ba7288086fac88245a",
+    "semantic_hash": "c352fdcfb737c0ba7288086fac88245a"
+  },
+  "main/java/com/norfold/app/ui/screens/OnboardingScreen.kt": {
+    "mtime": 1783978133.9879982,
+    "ast_hash": "ff9587f3bcd94ad0d24424458dd693da",
+    "semantic_hash": "ff9587f3bcd94ad0d24424458dd693da"
+  },
+  "main/java/com/norfold/app/ui/screens/PlanningScreens.kt": {
+    "mtime": 1784086231.4988775,
+    "ast_hash": "96c272fcd3bbac10b23f270a9e3260c4",
+    "semantic_hash": "96c272fcd3bbac10b23f270a9e3260c4"
+  },
+  "main/java/com/norfold/app/ui/screens/SearchScreen.kt": {
+    "mtime": 1783978199.6639876,
+    "ast_hash": "4d45fd980c386d2826553023e41b6612",
+    "semantic_hash": "4d45fd980c386d2826553023e41b6612"
+  },
+  "main/java/com/norfold/app/ui/screens/SettingsScreen.kt": {
+    "mtime": 1784054687.966444,
+    "ast_hash": "ef83d2870825b10dd5a14257b6d2219b",
+    "semantic_hash": "ef83d2870825b10dd5a14257b6d2219b"
+  },
+  "main/java/com/norfold/app/ui/screens/SidebarScreen.kt": {
+    "mtime": 1784095904.1736708,
+    "ast_hash": "367c2bc3fa0cb316d40e2999fa88a97e",
+    "semantic_hash": "367c2bc3fa0cb316d40e2999fa88a97e"
+  },
+  "main/java/com/norfold/app/ui/screens/WorkspaceHubScreens.kt": {
+    "mtime": 1784054687.958616,
+    "ast_hash": "ae72c882bba5bac7a87ed1e8cda3b0eb",
+    "semantic_hash": "ae72c882bba5bac7a87ed1e8cda3b0eb"
+  },
+  "main/java/com/norfold/app/ui/screens/WorkspaceScreens.kt": {
+    "mtime": 1784054688.0472116,
+    "ast_hash": "62aa387f3756e0a97e12072b99a98d38",
+    "semantic_hash": "62aa387f3756e0a97e12072b99a98d38"
+  },
+  "main/java/com/norfold/app/ui/screens/WorkspaceVisualDialog.kt": {
+    "mtime": 1784054687.9829934,
+    "ast_hash": "e9dfc951afa2e5dcdd95578f9e04096d",
+    "semantic_hash": "e9dfc951afa2e5dcdd95578f9e04096d"
+  },
+  "main/java/com/norfold/app/ui/tasks/TaskDragPlanner.kt": {
+    "mtime": 1783763680.285374,
+    "ast_hash": "f508e45c846370ac011d451dc63507e2",
+    "semantic_hash": "f508e45c846370ac011d451dc63507e2"
+  },
+  "main/java/com/norfold/app/ui/tasks/TaskModels.kt": {
+    "mtime": 1784059875.3223543,
+    "ast_hash": "ec59cb7c6491442b8a7a0ced1e68493c",
+    "semantic_hash": "ec59cb7c6491442b8a7a0ced1e68493c"
+  },
+  "main/java/com/norfold/app/ui/tasks/TasksBoardScreen.kt": {
+    "mtime": 1784084670.599074,
+    "ast_hash": "6cc267d16a5461267fcd897e682e827b",
+    "semantic_hash": "6cc267d16a5461267fcd897e682e827b"
+  },
+  "test/java/com/norfold/app/data/CloudSyncQueueTest.kt": {
+    "mtime": 1783763681.1769736,
+    "ast_hash": "93ee00a2fb12409d4e558feca56a3086",
+    "semantic_hash": "93ee00a2fb12409d4e558feca56a3086"
+  },
+  "test/java/com/norfold/app/domain/BackupCodecTest.kt": {
+    "mtime": 1783943743.4525564,
+    "ast_hash": "0d1861b4b1e451533cc5380189e9367e",
+    "semantic_hash": "0d1861b4b1e451533cc5380189e9367e"
+  },
+  "test/java/com/norfold/app/domain/BlockContainerTreeTest.kt": {
+    "mtime": 1784035765.7693284,
+    "ast_hash": "e1cc15d3bbc2b29b581d1f32323ee425",
+    "semantic_hash": "e1cc15d3bbc2b29b581d1f32323ee425"
+  },
+  "test/java/com/norfold/app/domain/BlockDocumentFoundationTest.kt": {
+    "mtime": 1783978479.023962,
+    "ast_hash": "0aaaae1d541846871fa7749f1b9e89f1",
+    "semantic_hash": "0aaaae1d541846871fa7749f1b9e89f1"
+  },
+  "test/java/com/norfold/app/domain/ChartSpecCodecTest.kt": {
+    "mtime": 1784054097.9830663,
+    "ast_hash": "28b2f79bece647e8ae025dec64367655",
+    "semantic_hash": "28b2f79bece647e8ae025dec64367655"
+  },
+  "test/java/com/norfold/app/domain/DocLayoutTest.kt": {
+    "mtime": 1784096248.2456243,
+    "ast_hash": "52abdb42ba937eec0778f57ce845748a",
+    "semantic_hash": "52abdb42ba937eec0778f57ce845748a"
+  },
+  "test/java/com/norfold/app/domain/DocOutlineTest.kt": {
+    "mtime": 1784049125.663696,
+    "ast_hash": "a40c0888460a463da98931ebc6d809de",
+    "semantic_hash": "a40c0888460a463da98931ebc6d809de"
+  },
+  "test/java/com/norfold/app/domain/DocPaginationTest.kt": {
+    "mtime": 1784098444.077358,
+    "ast_hash": "eeac3112a404337fc2c441b9910131df",
+    "semantic_hash": "eeac3112a404337fc2c441b9910131df"
+  },
+  "test/java/com/norfold/app/domain/DocSectionsTest.kt": {
+    "mtime": 1784096066.9416425,
+    "ast_hash": "d58b694b75f4119b0f7a020b31a3b7a1",
+    "semantic_hash": "d58b694b75f4119b0f7a020b31a3b7a1"
+  },
+  "test/java/com/norfold/app/domain/MarkdownExporterTest.kt": {
+    "mtime": 1784098495.3853521,
+    "ast_hash": "66b39bc186f9ff8b974cadb569d49bc4",
+    "semantic_hash": "66b39bc186f9ff8b974cadb569d49bc4"
+  },
+  "test/java/com/norfold/app/domain/MarkdownExtendedSyntaxTest.kt": {
+    "mtime": 1784053801.7431002,
+    "ast_hash": "eb9781e5942b84a4a75134673f35c7e3",
+    "semantic_hash": "eb9781e5942b84a4a75134673f35c7e3"
+  },
+  "test/java/com/norfold/app/domain/SyncConflictReportTest.kt": {
+    "mtime": 1783763681.2359877,
+    "ast_hash": "b98dc8a9d989ccc1c8849a6893a60f4d",
+    "semantic_hash": "b98dc8a9d989ccc1c8849a6893a60f4d"
+  },
+  "test/java/com/norfold/app/domain/TaskChartSpecBuilderTest.kt": {
+    "mtime": 1784083263.4432392,
+    "ast_hash": "0692791abb5e7543fb72454382de1877",
+    "semantic_hash": "0692791abb5e7543fb72454382de1877"
+  },
+  "test/java/com/norfold/app/domain/TaskDateRangeCodecTest.kt": {
+    "mtime": 1783766918.2356956,
+    "ast_hash": "f5604fd628aa2ee933195a9877eef75e",
+    "semantic_hash": "f5604fd628aa2ee933195a9877eef75e"
+  },
+  "test/java/com/norfold/app/domain/TaskMoveNormalizerTest.kt": {
+    "mtime": 1783763681.2494416,
+    "ast_hash": "fdde95462be6f7cda9b40872e4e122f1",
+    "semantic_hash": "fdde95462be6f7cda9b40872e4e122f1"
+  },
+  "test/java/com/norfold/app/domain/VaultCryptoTest.kt": {
+    "mtime": 1783763681.2577024,
+    "ast_hash": "d67c7293290d6a09436afe1139ce2c84",
+    "semantic_hash": "d67c7293290d6a09436afe1139ce2c84"
+  },
+  "test/java/com/norfold/app/domain/WeekHourBandsTest.kt": {
+    "mtime": 1784085915.4188986,
+    "ast_hash": "a72944a4eb487ad9f6f8b503fe5a7077",
+    "semantic_hash": "a72944a4eb487ad9f6f8b503fe5a7077"
+  },
+  "test/java/com/norfold/app/ui/components/DiagramBuilderCodecTest.kt": {
+    "mtime": 1784014904.7287686,
+    "ast_hash": "58a3b36d8bdb15f87e68563bda50adc8",
+    "semantic_hash": "58a3b36d8bdb15f87e68563bda50adc8"
+  },
+  "test/java/com/norfold/app/ui/components/EmbedMetadataResolverTest.kt": {
+    "mtime": 1783975895.7463372,
+    "ast_hash": "8e405cb57dd848859c722229f599e6b3",
+    "semantic_hash": "8e405cb57dd848859c722229f599e6b3"
+  },
+  "test/java/com/norfold/app/ui/components/MathBuilderSheetTest.kt": {
+    "mtime": 1784018011.7266786,
+    "ast_hash": "fe85c3518f6a8ee853e8ceeb233b1202",
+    "semantic_hash": "fe85c3518f6a8ee853e8ceeb233b1202"
+  },
+  "test/java/com/norfold/app/ui/components/RenderCacheTest.kt": {
+    "mtime": 1784054438.655024,
+    "ast_hash": "1baf54b1f465a750cdadd18f3f9db762",
+    "semantic_hash": "1baf54b1f465a750cdadd18f3f9db762"
+  },
+  "test/java/com/norfold/app/ui/tasks/TaskDragPlannerTest.kt": {
+    "mtime": 1783763681.184572,
+    "ast_hash": "42014050adf01771d4f989aaef6d2a0e",
+    "semantic_hash": "42014050adf01771d4f989aaef6d2a0e"
+  }
+}
