@@ -1,18 +1,18 @@
 # Norfold Current-State and Product Specification
 
-> **2026-07-15 supersession:** The separate workspace Infinite Canvas is retired. Any later section that retains that workspace destination is historical and non-authoritative. Flow and the Docs-owned Bounded Document Canvas remain active. The current execution contract is [CRITICAL-APP-WIRING-AND-PREMIUM-UX-EXECUTION-CONTRACT.md](CRITICAL-APP-WIRING-AND-PREMIUM-UX-EXECUTION-CONTRACT.md).
+> **2026-07-16 supersession:** The separate workspace Infinite Canvas is retired. Any later section that retains that workspace destination is historical and non-authoritative. Flow and the Docs-owned Bounded Document Canvas remain active. The native structured-document delta in §1.2 supersedes descriptions of Markdown-backed canonical editing and WebView preview. The current execution contract is [CRITICAL-APP-WIRING-AND-PREMIUM-UX-EXECUTION-CONTRACT.md](CRITICAL-APP-WIRING-AND-PREMIUM-UX-EXECUTION-CONTRACT.md).
 
-**Status:** Authoritative product and engineering definition  
-**Evidence date:** 2026-07-15  
-**Primary platform:** Android  
-**Later platform:** Windows  
-**Out of current scope:** Apple platforms  
-**Repository:** `/home/sheikh/GitHub/Libre-Notes`  
+**Status:** Authoritative product and engineering definition
+**Evidence date:** 2026-07-16
+**Primary platform:** Android
+**Later platform:** Windows
+**Out of current scope:** Apple platforms
+**Repository:** `/home/sheikh/GitHub/Libre-Notes`
 **Supersedes:** Any claim in `archive/superseded-2026-07-15/DOC-EDITOR-REDESIGN-VERIFY-AND-CLEANUP.md` that the document-editor redesign is complete
 
 ## 1. Executive verdict
 
-Norfold is already a substantial offline-first workspace application, not a mock-up. The Android build has a Workspace Hub, notes and block documents, tasks, chat, files, databases, graph and activity surfaces, shared workspace objects, encrypted backup/sync data, Google identity and Drive authorization paths, an infinite canvas, document pagination, and PDF export. The current source builds and its Android instrumentation suite passes on an emulator.
+Norfold is already a substantial offline-first workspace application, not a mock-up. The Android build has a Workspace Hub, owned block documents, tasks, chat, files, databases, graph and activity surfaces, shared workspace objects, encrypted backup/sync data, Google identity and Drive authorization paths, bounded document layout, pagination, and PDF export. The current source and Android-test APK build successfully; the 2026-07-16 contract pass has not run its instrumentation suite on an installed build.
 
 The app is not product-complete. In particular, the document editor currently combines three promising but only partly unified ideas:
 
@@ -22,7 +22,7 @@ The app is not product-complete. In particular, the document editor currently co
 
 The missing product is a coherent document model in which users can edit text naturally, select one or many elements, move or resize them, control alignment and layers, group or lock them, and understand whether they are editing a flowing document, a fixed page, or an infinite canvas. The Canva references show useful interaction patterns, but Norfold should not become a miniature Canva. Its advantage should be a private, offline-first workspace where one document can move safely between structured writing and deliberate visual layout without losing content, history, backlinks, or export fidelity.
 
-The previous editor handoff must therefore not proceed to Phase C cleanup. Its automated verification work remains useful, but its completion premise is rejected by this audit. Existing Markdown prompts should remain in place until the target model in this specification is implemented and proven on a real device in both themes.
+The previous editor completion premise remains rejected. The 2026-07-16 contract pass implemented the native persistence and owner model and archived the superseded Markdown/WebView paths, but real-device proof in both themes is still mandatory before completion.
 
 ### 1.1 Implementation delta — 2026-07-15
 
@@ -36,6 +36,17 @@ The first coherent slice of the target model is now implemented. This delta over
 - Bounded PDF export uses absolute block placement and the current page size. Flow/Infinite PDF uses semantic document order. Editable DOCX export preserves title, headings, paragraphs, lists/checklists, quotes, code, rules, and XML escaping; arbitrary spatial positioning is intentionally flattened.
 - The sidebar now has one sticky workspace/search container. Query results replace its body and clearing restores navigation or the document ToC.
 - High-level Kotlin names began moving from Notes to Docs through `scripts/migrate_note_terms.py`. Room tables, backup tags, sync object types, and serialized keys remain protected compatibility contracts.
+
+### 1.2 Structured-document contract activation — 2026-07-16
+
+- Android is the authoritative editor implementation. The web surface remains a secondary visual prototype.
+- `BlockDocument` and typed `DocumentBlock` payloads are canonical; Markdown is limited to import/export/print/interoperability boundaries.
+- Room schema 33 stores generic owner documents and block rows for notes, tasks, and calendar events, with stable block identity scoped by document.
+- Versioned payload envelopes preserve unknown/future blocks exactly.
+- Task Docs and calendar-event Docs open the full structured editor; description fields are derived plain-text projections.
+- Backup V3 carries exact non-note owner documents, layout metadata, stable IDs, and timestamps.
+- WebView preview, renderer cache, task live-Markdown field, per-block source/render mode, and bundled JavaScript engines are archived outside the Android app.
+- Automated unit tests, debug assembly, and Android-test APK assembly pass. Installed interaction, Light/Dark, adaptive, accessibility, persistence, and visible-defect gates remain open; see `DOCUMENT-CONTRACT-QA-HANDOFF-2026-07-16.md`.
 - Debug builds allow destructive schema fallback only while `PRE_BETA`; release and benchmark builds forbid it. The Beta warning/permission gate remains mandatory.
 
 Current confidence is **implemented and dark-emulator-verified, not complete**. The exact evidence and remaining gaps are in `IMPLEMENTATION-EVIDENCE-2026-07-15.md`.
@@ -121,11 +132,11 @@ The calm search, chip, card, and date hierarchy in the supplied MIUI Notes refer
 
 ### 4.3 Document writing mode
 
-The Page editor is a Markdown-backed block editor. It renders and edits headings, paragraphs, lists, checklists, quotes, code, dividers, tables, images, attachments, embeds, and note links. It has local undo/redo, save, mode changes, a block insertion affordance, block type conversion, a range replacement flow, a floating formatting toolbar, and shared object/history integration.
+The writing surface is a native structured-block editor. It renders and edits headings, paragraphs, lists, checklists, quotes, code, dividers, tables, images, attachments, embeds, and links. It has local undo/redo, save, layout changes, block insertion and conversion, range replacement, a floating formatting toolbar, and shared object/history integration.
 
 This is the correct foundation for writing. The current editing screen, however, puts a six-dot handle, plus button, and overflow button around nearly every top-level block. On a phone this creates a persistent control grid around the content. The block menu then opens as a very long sheet covering much of the page. The user can operate it, but the text never feels as calm as the read state.
 
-The formatting toolbar supports useful Markdown operations, but it is not yet a dependable selection toolbar. It lacks clear active-state feedback and a complete adaptive priority scheme. It also lacks font family/size, text color, underline, case, alignment, spacing, style copy, position, size, lock, grouping, and layer actions. Not every one of those belongs in Flow mode, but the product must clearly say where they do belong.
+The formatting toolbar supports useful structured text operations, but it is not yet a dependable selection toolbar. It lacks clear active-state feedback and a complete adaptive priority scheme. It also lacks font family/size, text color, underline, case, alignment, spacing, style copy, position, size, lock, grouping, and layer actions. Not every one of those belongs in Flow mode, but the product must clearly say where they do belong.
 
 ### 4.4 Existing selection behavior
 
@@ -832,4 +843,4 @@ Files added by this audit are limited to this specification, the stored referenc
 
 ---
 
-**Authoritative reading:** Norfold has a credible workspace and editor foundation. It is ready for a deliberate editor unification effort, not for a false completion pass. The next successful run should preserve what already works—offline ownership, Markdown-backed structured writing, shared objects, history, freeform manipulation, pagination, and visual identity—while implementing the explicit selection, Bounded Document Canvas, Docs organization, account lifecycle, licensing, hosting, and Android-release contracts above.
+**Authoritative reading:** Norfold has a credible workspace and native structured-document foundation. The owner/persistence contract is implemented, but this is not a false completion pass: installed Light/Dark, adaptive, persistence, accessibility, and visible-defect gates remain. Continue by preserving offline ownership, typed structured writing, shared objects, history, bounded document layout, pagination, and visual identity while completing the explicit selection, Docs organization, account lifecycle, licensing, hosting, and Android-release contracts above.
