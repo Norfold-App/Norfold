@@ -6,6 +6,18 @@ Build: ✅ `./gradlew :apps:android:testDebugUnitTest :apps:android:assembleDebu
 
 Gate note: `Done` requires the complete universal GATE in `MASTER_ORDER.md`, including current emulator interaction, every prompt checkbox, Light and Dark screenshots, and grep proof for removals. The old chat self-report is not accepted as proof. Consequently, source-complete-looking rows remain `Partial` until their device evidence exists. **Device evidence for the 2026-07-15 marathon rows comes from the user pass of `codex-handoffs/MASTER-TEST-CHECKLIST.md`.**
 
+## Document model implementation delta — 2026-07-15
+
+**Status: Partial — implemented, automated tests and dark emulator paths pass; real-device, Light, accessibility, large-font, rotation, multi-selection, and stress gates remain.**
+
+- Added Flow / bounded Document Canvas / Infinite Canvas choices over the shared block document.
+- Added versioned page/canvas persistence with legacy placement-map decoding and backup round trips.
+- Added bounded page presets, page count/orientation controls, boundary clamping, clean view mode, selection-only canvas chrome, exact-position PDF source, and semantic editable DOCX export.
+- Added one sticky workspace/search sidebar block with in-place cross-object results.
+- Applied the guarded Note/Notes → Doc/Docs architecture codemod; a repeat dry-run returns zero changes and protected persistence literals remain unchanged.
+- `testDebugUnitTest`, `assembleDebug`, and `assembleDebugAndroidTest` passed under JDK 21 after the final automatic-page-count fix. The exact APKs were installed and AndroidJUnitRunner reported `OK (12 tests)`. Device evidence is in `device-evidence/2026-07-15/`.
+- The first headless AVD boot showed an Android **System UI** ANR dialog; Norfold stayed alive and logcat contained no Norfold fatal exception. Subsequent app QA continued normally.
+
 ## FIRST-MISSION execution gates
 
 ### Part 0 — Complete
@@ -52,3 +64,19 @@ Gate note: `Done` requires the complete universal GATE in `MASTER_ORDER.md`, inc
 - ~~`QuoteBlock` can contain child blocks, but `RenderBlock` flattens a quote through `plainText()`~~ — fixed 2026-07-15 (step 8 batch): `QuoteBlock.children` render recursively.
 - Per-block Render/Show-source persistence has no model field yet. Its addition must remain backward-compatible with existing schema serialized block payloads (`encodeDefaults = true`, `ignoreUnknownKeys = false`).
 - ~~Native inline links are colored and underlined without URL annotations or a URI callback~~ — fixed post-audit: native links carry URL annotations and a click handler.
+
+## Markdown archive log — 2026-07-15
+
+The following files were moved, never deleted. Active incomplete prompt folders, `MASTER_ORDER.md`, `PARALLEL-PROTOCOL.md`, `coordination/`, `SETTINGS_BACKLOG.md`, and test checklists remain in place.
+
+| Archived path | Reason |
+|---|---|
+| `archive/superseded-2026-07-15/root-prompts/CODEX_PROMPT.md` | Older root duplicate; the handoff copy contains the later run-order banner and remains canonical. |
+| `archive/superseded-2026-07-15/root-prompts/CODEX_PROMPT_1_PROPERTIES_TABLE.md` | Older root duplicate; canonical copy remains under `tasks-board-calendar/`. |
+| `archive/superseded-2026-07-15/root-prompts/CODEX_PROMPT_2_BOARD_ACCENT.md` | Byte-identical root duplicate; canonical copy remains under `tasks-board-calendar/`. |
+| `archive/superseded-2026-07-15/root-prompts/CODEX_PROMPT_3_SIDEBAR.md` | Older root duplicate; canonical copy remains under `tasks-board-calendar/`. |
+| `archive/superseded-2026-07-15/root-prompts/CODEX_PROMPT_4_CALENDAR.md` | Older root draft; canonical handoff has the expanded adaptive week-grid requirements. |
+| `archive/superseded-2026-07-15/root-prompts/CODEX_PROMPT_TASKPAGE.md` | Older root duplicate; canonical copy remains under `tasks-board-calendar/`. |
+| `archive/superseded-2026-07-15/PLAN.md` | Broad legacy plan superseded by the current product specification and execution contracts. |
+| `archive/superseded-2026-07-15/OLD_CHAT_SELF_REPORT.md` | Historical self-report is not accepted as current device evidence. |
+| `archive/superseded-2026-07-15/DOC-EDITOR-REDESIGN-VERIFY-AND-CLEANUP.md` | Superseded after the device audit found design-level editor gaps; retained for regression commands only. |
